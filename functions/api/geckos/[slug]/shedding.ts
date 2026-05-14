@@ -1,4 +1,5 @@
-import type { CreateSheddingInput, Env, SheddingEvent } from '../../../_lib/types';
+import type { Env } from '../../../_lib/env';
+import type { CreateSheddingInput, SheddingEvent } from '../../../_lib/types';
 
 async function geckoIdForSlug(env: Env, slug: string): Promise<number | null> {
   const row = await env.DB.prepare('SELECT id FROM geckos WHERE slug = ?')

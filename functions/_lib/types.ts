@@ -57,7 +57,3 @@ export interface CreateSheddingInput {
   ts?: string;
   note?: string;
 }
-
-export interface Env {
-  DB: D1Database;
-}

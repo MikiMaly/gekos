@@ -1,4 +1,5 @@
-import type { CareCategory, CareEvent, Env, Gecko, MistingEvent, SheddingEvent } from '../_lib/types';
+import type { Env } from '../_lib/env';
+import type { CareCategory, CareEvent, Gecko, MistingEvent, SheddingEvent } from '../_lib/types';
 import { pragueDateString, pragueTodayRange } from '../_lib/time';
 
 const CATEGORIES: CareCategory[] = ['cvrcci', 'banan', 'antib', 'mast'];
