@@ -14,6 +14,13 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "lucide-react": "^0.469.0",
+    "motion": "^11.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^7.1.0",
     "typescript": "^5.7.0",
     "wrangler": "^3.99.0"
   }

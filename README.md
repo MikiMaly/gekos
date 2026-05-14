@@ -43,8 +43,9 @@ npm run dev
 
 ## Integrace do hubu
 
-1. V hubu: `git submodule add https://github.com/MikiMaly/gekos.git gekos`
-2. Přidat D1 binding do `hub/wrangler.toml`
-3. Přidat kartu do `hub/src/pages/PrivatePage.tsx` a route do `hub/src/routes.tsx`
-4. Prebuild script v hubu mountuje `gekos/functions/api/geckos` → `hub/functions/api/geckos`
-5. Push do hubu = Cloudflare Pages build s fetchnutým submodulem
+Detailní kroky v [INTEGRATION.md](INTEGRATION.md). TL;DR:
+
+1. `wrangler d1 create gekos` v gekos folderu, zkopírovat ID
+2. V hubu: `git submodule add https://github.com/MikiMaly/gekos.git gekos`
+3. Hub: přidat D1 binding, path alias, gekos routes, kartu na PrivatePage, prebuild copy script
+4. Push do hubu = Cloudflare Pages build s fetchnutým submodulem = deploy webu i gekos sekce
