@@ -1,0 +1,11 @@
+name = "gekos"
+compatibility_date = "2025-01-15"
+pages_build_output_dir = "public"
+
+# Pro lokální dev a `wrangler d1` příkazy. Produkční D1 binding se duplikuje v hub/wrangler.toml.
+# Po `wrangler d1 create gekos` sem nahraď database_id.
+[[d1_databases]]
+binding = "DB"
+database_name = "gekos"
+database_id = "REPLACE_AFTER_WRANGLER_D1_CREATE"
+migrations_dir = "migrations"
