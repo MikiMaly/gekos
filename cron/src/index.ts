@@ -170,7 +170,11 @@ export default {
 
       if (hour === 9) await checkMistingMorning(env, ymd);
       if (hour === 22) await checkMistingEvening(env, ymd);
-      if (hour === 11) await checkFeedingStaleness(env, ymd);
+      // Krmení: kontrola 2× denně. Idempotence zajistí ze stejna staleness
+      // (warn/ultra per gecko per den) projde jen jednou nez 1. cas.
+      // 11:00 zachyti rano-orientovane vzorce; 21:00 zachyti vecer-orientovane
+      // (typicky pro nocni krcky kdy se krmi vecer).
+      if (hour === 11 || hour === 21) await checkFeedingStaleness(env, ymd);
 
       // Svlékání kontrola — každou hodinu, jakmile uplyne 24 h.
       await checkSheddingFollowups(env);
@@ -191,7 +195,7 @@ export default {
 
     if (hour === 9) await checkMistingMorning(env, ymd);
     if (hour === 22) await checkMistingEvening(env, ymd);
-    if (hour === 11) await checkFeedingStaleness(env, ymd);
+    if (hour === 11 || hour === 21) await checkFeedingStaleness(env, ymd);
     await checkSheddingFollowups(env);
 
     return Response.json({ ok: true, ymd, hour });

@@ -138,7 +138,7 @@ V Cloudflare Pages dashboard → projekt hub → Settings → Builds → **enabl
 Cron Worker v [cron/](cron/) posílá Telegram zprávy:
 - 09:00 Praha — ranní mlžení
 - 22:00 Praha — večerní mlžení
-- 11:00 Praha — staleness krmení (warn ≥2 dny, ultra ≥3 dny)
+- 11:00 a 21:00 Praha — staleness krmení (warn ≥2 dny, ultra ≥3 dny); idempotence zajistí 1 zprávu/den
 - 24h+ po svlékání — kontrola
 
 ### a) Vytvořit Telegram bota
