@@ -7,5 +7,5 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "gekos"
-database_id = "REPLACE_AFTER_WRANGLER_D1_CREATE"
+database_id = "259436bf-1981-400d-9095-672ce0f429e5"
 migrations_dir = "migrations"

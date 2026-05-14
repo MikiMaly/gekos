@@ -1,4 +1,4 @@
-import type { CareEvent, CareCategory, Env } from '../../../../../src/lib/types';
+import type { CareEvent, CareCategory, Env } from '../../../../_lib/types';
 
 const CATEGORIES: CareCategory[] = ['cvrcci', 'banan', 'antib', 'mast'];
 

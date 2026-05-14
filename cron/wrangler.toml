@@ -10,7 +10,7 @@ crons = ["0 * * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "gekos"
-database_id = "REPLACE_WITH_SAME_ID_AS_HUB_WRANGLER"
+database_id = "259436bf-1981-400d-9095-672ce0f429e5"
 migrations_dir = "../migrations"
 
 # Tajné hodnoty se nastaví přes `wrangler secret put BOT_TOKEN`

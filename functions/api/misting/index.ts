@@ -1,4 +1,4 @@
-import type { CreateMistingInput, Env, MistingEvent, PartOfDay } from '../../../src/lib/types';
+import type { CreateMistingInput, Env, MistingEvent, PartOfDay } from '../../_lib/types';
 
 const PARTS: PartOfDay[] = ['rano', 'vecer', 'nahodne'];
 

@@ -1,4 +1,4 @@
-import type { Env, Gecko } from '../../../src/lib/types';
+import type { Env, Gecko } from '../../_lib/types';
 
 export const onRequestGet: PagesFunction<Env, 'slug'> = async ({ env, params }) => {
   const slug = params.slug as string;
