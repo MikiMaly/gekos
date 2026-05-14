@@ -6,7 +6,6 @@ import type {
   Gecko,
   GeckoSlug,
   MistingEvent,
-  PartOfDay,
 } from './types';
 
 const BASE = '/api';
@@ -46,6 +45,8 @@ export const api = {
           method: 'POST',
           body: JSON.stringify(body),
         }),
+      remove: (slug: GeckoSlug, id: number) =>
+        req<{ deleted: number }>(`/geckos/${slug}/events?id=${id}`, { method: 'DELETE' }),
     },
   },
   misting: {
@@ -61,6 +62,8 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    remove: (id: number) =>
+      req<{ deleted: number }>(`/misting?id=${id}`, { method: 'DELETE' }),
   },
   dashboard: () => req<DashboardResponse>('/dashboard'),
 };
@@ -74,5 +77,9 @@ export interface DashboardGecko {
 export interface DashboardResponse {
   date_prague: string;
   geckos: DashboardGecko[];
-  misting_today: Record<PartOfDay, { done: boolean; ts: string | null }>;
+  misting_today: {
+    rano: { latest_ts: string | null };
+    vecer: { latest_ts: string | null };
+    nahodne: { count: number; latest_ts: string | null };
+  };
 }

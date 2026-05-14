@@ -2,7 +2,7 @@ export type GeckoSlug = 'bily' | 'bezovy' | 'hnedy';
 
 export type CareCategory = 'cvrcci' | 'banan' | 'antib' | 'mast';
 
-export type PartOfDay = 'rano' | 'vecer';
+export type PartOfDay = 'rano' | 'vecer' | 'nahodne';
 
 export interface Gecko {
   id: number;
@@ -20,7 +20,7 @@ export interface CareEvent {
   gecko_id: number;
   ts: string;
   category: CareCategory;
-  given: 0 | 1;
+  count: number;
   note: string | null;
 }
 
@@ -28,20 +28,18 @@ export interface MistingEvent {
   id: number;
   ts: string;
   part_of_day: PartOfDay;
-  done: 0 | 1;
   note: string | null;
 }
 
 export interface CreateCareEventInput {
   category: CareCategory;
-  given: boolean;
+  count?: number;     // default 1 server-side
   note?: string;
-  ts?: string;
+  ts?: string;        // default now server-side
 }
 
 export interface CreateMistingInput {
   part_of_day: PartOfDay;
-  done: boolean;
   note?: string;
   ts?: string;
 }

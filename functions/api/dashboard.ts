@@ -12,7 +12,11 @@ interface DashboardGecko {
 interface DashboardResponse {
   date_prague: string;
   geckos: DashboardGecko[];
-  misting_today: Record<PartOfDay, { done: boolean; ts: string | null }>;
+  misting_today: {
+    rano: { latest_ts: string | null };
+    vecer: { latest_ts: string | null };
+    nahodne: { count: number; latest_ts: string | null };
+  };
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
@@ -25,21 +29,21 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
        ORDER BY id`
     ),
     env.DB.prepare(
-      `SELECT id, gecko_id, ts, category, given, note
+      `SELECT id, gecko_id, ts, category, count, note
        FROM care_events
        WHERE ts >= ? AND ts < ?
        ORDER BY ts DESC`
     ).bind(start, end),
     env.DB.prepare(
-      `SELECT id, gecko_id, ts, category, given, note FROM (
-         SELECT id, gecko_id, ts, category, given, note,
+      `SELECT id, gecko_id, ts, category, count, note FROM (
+         SELECT id, gecko_id, ts, category, count, note,
                 ROW_NUMBER() OVER (PARTITION BY gecko_id, category ORDER BY ts DESC) AS rn
          FROM care_events
        )
        WHERE rn = 1`
     ),
     env.DB.prepare(
-      `SELECT id, ts, part_of_day, done, note
+      `SELECT id, ts, part_of_day, note
        FROM misting_events
        WHERE ts >= ? AND ts < ?
        ORDER BY ts DESC`
@@ -64,16 +68,18 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     return { gecko: g, today_events, last_event_per_category };
   });
 
-  const misting_today: Record<PartOfDay, { done: boolean; ts: string | null }> = {
-    rano: { done: false, ts: null },
-    vecer: { done: false, ts: null },
+  const misting_today: DashboardResponse['misting_today'] = {
+    rano: { latest_ts: null },
+    vecer: { latest_ts: null },
+    nahodne: { count: 0, latest_ts: null },
   };
-  // Latest entry of the day wins (user can toggle multiple times).
   for (const m of mistingToday) {
-    const slot = misting_today[m.part_of_day];
-    if (slot.ts === null) {
-      slot.done = m.done === 1;
-      slot.ts = m.ts;
+    if (m.part_of_day === 'nahodne') {
+      misting_today.nahodne.count += 1;
+      if (misting_today.nahodne.latest_ts === null) misting_today.nahodne.latest_ts = m.ts;
+    } else {
+      const slot = misting_today[m.part_of_day];
+      if (slot.latest_ts === null) slot.latest_ts = m.ts;
     }
   }
 

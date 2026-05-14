@@ -69,17 +69,10 @@ export default function GeckoProfile() {
                 className="flex items-center justify-between py-2 px-3 rounded-md border border-border"
               >
                 <div className="flex items-center gap-3">
-                  <span
-                    className={
-                      'w-6 h-6 rounded flex items-center justify-center text-sm font-bold ' +
-                      (ev.given === 1
-                        ? 'bg-green-500/15 text-green-600'
-                        : 'bg-red-500/15 text-red-600')
-                    }
-                  >
-                    {ev.given === 1 ? '+' : '−'}
-                  </span>
                   <span className="font-medium">{CATEGORY_LABELS[ev.category]}</span>
+                  <span className="text-sm tabular-nums px-1.5 py-0.5 rounded bg-secondary">
+                    ×{ev.count}
+                  </span>
                   {ev.note && <span className="text-sm text-muted-foreground">— {ev.note}</span>}
                 </div>
                 <span className="text-sm text-muted-foreground">{formatDateTime(ev.ts)}</span>

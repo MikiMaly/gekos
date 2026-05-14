@@ -32,7 +32,7 @@ export const onRequestGet: PagesFunction<Env, 'slug'> = async ({ env, params, re
   }
 
   const { results } = await env.DB.prepare(
-    `SELECT id, gecko_id, ts, category, given, note
+    `SELECT id, gecko_id, ts, category, count, note
      FROM care_events
      WHERE ${where.join(' AND ')}
      ORDER BY ts DESC
@@ -59,21 +59,39 @@ export const onRequestPost: PagesFunction<Env, 'slug'> = async ({ env, params, r
   if (!CATEGORIES.includes(body.category)) {
     return Response.json({ error: 'invalid_category' }, { status: 400 });
   }
-  if (typeof body.given !== 'boolean') {
-    return Response.json({ error: 'given_must_be_boolean' }, { status: 400 });
+  const count = body.count ?? 1;
+  if (!Number.isInteger(count) || count <= 0) {
+    return Response.json({ error: 'count_must_be_positive_integer' }, { status: 400 });
   }
 
   const ts = body.ts ?? new Date().toISOString();
-  const note = body.note ?? null;
-  const given = body.given ? 1 : 0;
+  const note = body.note?.trim() || null;
 
   const insert = await env.DB.prepare(
-    `INSERT INTO care_events (gecko_id, ts, category, given, note)
+    `INSERT INTO care_events (gecko_id, ts, category, count, note)
      VALUES (?, ?, ?, ?, ?)
-     RETURNING id, gecko_id, ts, category, given, note`
+     RETURNING id, gecko_id, ts, category, count, note`
   )
-    .bind(id, ts, body.category, given, note)
+    .bind(id, ts, body.category, count, note)
     .first<CareEvent>();
 
   return Response.json({ event: insert }, { status: 201 });
+};
+
+export const onRequestDelete: PagesFunction<Env, 'slug'> = async ({ env, params, request }) => {
+  const slug = params.slug as string;
+  const id = await geckoIdForSlug(env, slug);
+  if (id == null) return Response.json({ error: 'gecko_not_found', slug }, { status: 404 });
+
+  const url = new URL(request.url);
+  const eventId = url.searchParams.get('id');
+  if (!eventId) return Response.json({ error: 'missing_event_id' }, { status: 400 });
+
+  const res = await env.DB.prepare(
+    `DELETE FROM care_events WHERE id = ? AND gecko_id = ?`
+  )
+    .bind(Number(eventId), id)
+    .run();
+
+  return Response.json({ deleted: res.meta.changes });
 };

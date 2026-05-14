@@ -1,6 +1,6 @@
 import type { CreateMistingInput, Env, MistingEvent, PartOfDay } from '../../../src/lib/types';
 
-const PARTS: PartOfDay[] = ['rano', 'vecer'];
+const PARTS: PartOfDay[] = ['rano', 'vecer', 'nahodne'];
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   const url = new URL(request.url);
@@ -14,7 +14,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
   const { results } = await env.DB.prepare(
-    `SELECT id, ts, part_of_day, done, note
+    `SELECT id, ts, part_of_day, note
      FROM misting_events
      ${whereSql}
      ORDER BY ts DESC
@@ -37,21 +37,29 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   if (!PARTS.includes(body.part_of_day)) {
     return Response.json({ error: 'invalid_part_of_day' }, { status: 400 });
   }
-  if (typeof body.done !== 'boolean') {
-    return Response.json({ error: 'done_must_be_boolean' }, { status: 400 });
-  }
 
   const ts = body.ts ?? new Date().toISOString();
-  const done = body.done ? 1 : 0;
-  const note = body.note ?? null;
+  const note = body.note?.trim() || null;
 
   const inserted = await env.DB.prepare(
-    `INSERT INTO misting_events (ts, part_of_day, done, note)
-     VALUES (?, ?, ?, ?)
-     RETURNING id, ts, part_of_day, done, note`
+    `INSERT INTO misting_events (ts, part_of_day, note)
+     VALUES (?, ?, ?)
+     RETURNING id, ts, part_of_day, note`
   )
-    .bind(ts, body.part_of_day, done, note)
+    .bind(ts, body.part_of_day, note)
     .first<MistingEvent>();
 
   return Response.json({ event: inserted }, { status: 201 });
+};
+
+export const onRequestDelete: PagesFunction<Env> = async ({ env, request }) => {
+  const url = new URL(request.url);
+  const eventId = url.searchParams.get('id');
+  if (!eventId) return Response.json({ error: 'missing_event_id' }, { status: 400 });
+
+  const res = await env.DB.prepare(`DELETE FROM misting_events WHERE id = ?`)
+    .bind(Number(eventId))
+    .run();
+
+  return Response.json({ deleted: res.meta.changes });
 };

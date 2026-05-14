@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { CareEvent, Gecko, MistingEvent } from '../lib/types';
 import { api } from '../lib/api';
-import { CATEGORY_LABELS, PART_OF_DAY_LABELS } from '../lib/format';
+import { CATEGORY_LABELS, PART_OF_DAY_LABELS, formatTime } from '../lib/format';
 import { pragueDateString, pragueMonthRange } from '../lib/time';
 
 const DAY_NAMES = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
@@ -91,21 +91,11 @@ export default function GeckosCalendar() {
             <ArrowLeft className="w-4 h-4" /> Zpět
           </Link>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navMonth(-1)}
-              className="p-2 rounded hover:bg-muted"
-              aria-label="Předchozí měsíc"
-            >
+            <button onClick={() => navMonth(-1)} className="p-2 rounded hover:bg-muted" aria-label="Předchozí měsíc">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <h1 className="text-2xl font-semibold tabular-nums">
-              {month}/{year}
-            </h1>
-            <button
-              onClick={() => navMonth(1)}
-              className="p-2 rounded hover:bg-muted"
-              aria-label="Další měsíc"
-            >
+            <h1 className="text-2xl font-semibold tabular-nums">{month}/{year}</h1>
+            <button onClick={() => navMonth(1)} className="p-2 rounded hover:bg-muted" aria-label="Další měsíc">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -118,8 +108,8 @@ export default function GeckosCalendar() {
           ))}
         </div>
         <div className="grid grid-cols-7 gap-1">
-          {grid.map((cell) => {
-            if (!cell) return <div key={Math.random()} />;
+          {grid.map((cell, i) => {
+            if (!cell) return <div key={`e-${i}`} />;
             const care = careByDay[cell] ?? [];
             const misting = mistingByDay[cell] ?? [];
             const day = Number(cell.slice(-2));
@@ -131,24 +121,16 @@ export default function GeckosCalendar() {
                 onClick={() => setSelectedDay(cell)}
                 className={
                   'aspect-square p-1.5 rounded-md border text-left flex flex-col gap-1 transition-colors ' +
-                  (selected
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:bg-muted')
+                  (selected ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted')
                 }
               >
-                <span className={'text-sm ' + (isToday ? 'font-bold text-primary' : '')}>
-                  {day}
-                </span>
+                <span className={'text-sm ' + (isToday ? 'font-bold text-primary' : '')}>{day}</span>
                 <div className="flex flex-wrap gap-0.5">
                   {care.length > 0 && (
-                    <span className="text-[10px] px-1 rounded bg-green-500/20 text-green-700">
-                      {care.length}
-                    </span>
+                    <span className="text-[10px] px-1 rounded bg-green-500/20 text-green-700">{care.length}</span>
                   )}
                   {misting.length > 0 && (
-                    <span className="text-[10px] px-1 rounded bg-blue-500/20 text-blue-700">
-                      💧
-                    </span>
+                    <span className="text-[10px] px-1 rounded bg-blue-500/20 text-blue-700">💧{misting.length}</span>
                   )}
                 </div>
               </button>
@@ -174,7 +156,7 @@ export default function GeckosCalendar() {
 function buildMonthGrid(year: number, month: number): (string | null)[] {
   const first = new Date(Date.UTC(year, month - 1, 1));
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const dow = (first.getUTCDay() + 6) % 7; // Monday=0
+  const dow = (first.getUTCDay() + 6) % 7;
   const cells: (string | null)[] = [];
   for (let i = 0; i < dow; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) {
@@ -197,32 +179,23 @@ function DayDetail({
     return <p className="text-muted-foreground text-sm">Žádné události.</p>;
   }
   return (
-    <div className="space-y-3 text-sm">
+    <div className="space-y-2 text-sm">
       {careEvents.map((ev) => (
         <div key={`c-${ev.id}`} className="flex items-center gap-2">
-          <span
-            className={
-              'w-5 h-5 rounded flex items-center justify-center text-xs font-bold ' +
-              (ev.given === 1 ? 'bg-green-500/15 text-green-600' : 'bg-red-500/15 text-red-600')
-            }
-          >
-            {ev.given === 1 ? '+' : '−'}
-          </span>
           <span className="font-medium">{geckoById[ev.gecko_id]?.name}</span>
           <span className="text-muted-foreground">·</span>
           <span>{CATEGORY_LABELS[ev.category]}</span>
+          <span className="text-xs px-1.5 py-0.5 rounded bg-secondary tabular-nums">×{ev.count}</span>
+          <span className="text-muted-foreground ml-auto tabular-nums">{formatTime(ev.ts)}</span>
         </div>
       ))}
       {mistingEvents.map((ev) => (
         <div key={`m-${ev.id}`} className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded bg-blue-500/15 text-blue-600 flex items-center justify-center text-xs">
-            💧
-          </span>
+          <span className="w-5 h-5 rounded bg-blue-500/15 text-blue-600 flex items-center justify-center text-xs">💧</span>
           <span className="font-medium">Mlžení</span>
           <span className="text-muted-foreground">·</span>
-          <span>
-            {PART_OF_DAY_LABELS[ev.part_of_day]} — {ev.done === 1 ? 'ano' : 'ne'}
-          </span>
+          <span>{PART_OF_DAY_LABELS[ev.part_of_day]}</span>
+          <span className="text-muted-foreground ml-auto tabular-nums">{formatTime(ev.ts)}</span>
         </div>
       ))}
     </div>

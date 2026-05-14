@@ -15,9 +15,9 @@ CREATE TABLE geckos (
 CREATE TABLE care_events (
   id        INTEGER PRIMARY KEY,
   gecko_id  INTEGER NOT NULL REFERENCES geckos(id),
-  ts        TEXT    NOT NULL,                    -- ISO 8601 UTC, např. 2026-05-14T18:23:00Z
+  ts        TEXT    NOT NULL,                    -- ISO 8601 UTC
   category  TEXT    NOT NULL CHECK(category IN ('cvrcci','banan','antib','mast')),
-  given     INTEGER NOT NULL CHECK(given IN (0,1)),  -- 1 = +, 0 = -
+  count     INTEGER NOT NULL DEFAULT 1 CHECK(count > 0),
   note      TEXT
 );
 CREATE INDEX idx_events_gecko_ts    ON care_events(gecko_id, ts DESC);
@@ -26,8 +26,7 @@ CREATE INDEX idx_events_category_ts ON care_events(category, ts DESC);
 CREATE TABLE misting_events (
   id           INTEGER PRIMARY KEY,
   ts           TEXT    NOT NULL,                 -- ISO 8601 UTC
-  part_of_day  TEXT    NOT NULL CHECK(part_of_day IN ('rano','vecer')),
-  done         INTEGER NOT NULL CHECK(done IN (0,1)),
+  part_of_day  TEXT    NOT NULL CHECK(part_of_day IN ('rano','vecer','nahodne')),
   note         TEXT
 );
 CREATE INDEX idx_misting_ts ON misting_events(ts DESC);

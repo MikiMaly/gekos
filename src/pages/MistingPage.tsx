@@ -50,30 +50,13 @@ export default function MistingHistory() {
                 className="flex items-center justify-between py-2 px-3 rounded-md border border-border"
               >
                 <div className="flex items-center gap-3">
-                  <span
-                    className={
-                      'w-6 h-6 rounded flex items-center justify-center text-sm ' +
-                      (ev.done === 1
-                        ? 'bg-blue-500/15 text-blue-600'
-                        : 'bg-muted text-muted-foreground')
-                    }
-                  >
+                  <span className="w-6 h-6 rounded bg-blue-500/15 text-blue-600 flex items-center justify-center text-sm">
                     💧
                   </span>
                   <span className="font-medium">{PART_OF_DAY_LABELS[ev.part_of_day]}</span>
-                  <span
-                    className={
-                      'text-xs px-1.5 py-0.5 rounded ' +
-                      (ev.done === 1
-                        ? 'bg-green-500/15 text-green-600'
-                        : 'bg-red-500/15 text-red-600')
-                    }
-                  >
-                    {ev.done === 1 ? 'ano' : 'ne'}
-                  </span>
                   {ev.note && <span className="text-sm text-muted-foreground">— {ev.note}</span>}
                 </div>
-                <span className="text-sm text-muted-foreground">{formatDateTime(ev.ts)}</span>
+                <span className="text-sm text-muted-foreground tabular-nums">{formatDateTime(ev.ts)}</span>
               </li>
             ))}
           </ul>

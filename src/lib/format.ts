@@ -57,4 +57,5 @@ export const CATEGORY_LABELS = {
 export const PART_OF_DAY_LABELS = {
   rano: 'Ráno',
   vecer: 'Večer',
+  nahodne: 'Náhodně',
 } as const;
