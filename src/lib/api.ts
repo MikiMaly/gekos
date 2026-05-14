@@ -3,9 +3,11 @@ import type {
   CareEvent,
   CreateCareEventInput,
   CreateMistingInput,
+  CreateSheddingInput,
   Gecko,
   GeckoSlug,
   MistingEvent,
+  SheddingEvent,
 } from './types';
 
 const BASE = '/api';
@@ -48,6 +50,22 @@ export const api = {
       remove: (slug: GeckoSlug, id: number) =>
         req<{ deleted: number }>(`/geckos/${slug}/events?id=${id}`, { method: 'DELETE' }),
     },
+    shedding: {
+      list: (slug: GeckoSlug) =>
+        req<{ events: SheddingEvent[] }>(`/geckos/${slug}/shedding`),
+      create: (slug: GeckoSlug, body: CreateSheddingInput = {}) =>
+        req<{ event: SheddingEvent }>(`/geckos/${slug}/shedding`, {
+          method: 'POST',
+          body: JSON.stringify(body),
+        }),
+      markChecked: (slug: GeckoSlug, id: number, checked = true) =>
+        req<{ event: SheddingEvent }>(`/geckos/${slug}/shedding?id=${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ checked }),
+        }),
+      remove: (slug: GeckoSlug, id: number) =>
+        req<{ deleted: number }>(`/geckos/${slug}/shedding?id=${id}`, { method: 'DELETE' }),
+    },
   },
   misting: {
     list: (params?: { from?: string; to?: string }) => {
@@ -72,6 +90,7 @@ export interface DashboardGecko {
   gecko: Gecko;
   today_events: CareEvent[];
   last_event_per_category: Record<CareCategory, CareEvent | null>;
+  last_shedding: SheddingEvent | null;
 }
 
 export interface DashboardResponse {

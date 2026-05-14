@@ -1,0 +1,17 @@
+{
+  "name": "gekos-cron",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Telegram notifikace pro gekos (mlžení, krmení, svlékání)",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --test-scheduled",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^3.99.0"
+  }
+}

@@ -1,4 +1,4 @@
-import type { CareCategory, CareEvent, Env, Gecko, MistingEvent, PartOfDay } from '../../src/lib/types';
+import type { CareCategory, CareEvent, Env, Gecko, MistingEvent, SheddingEvent } from '../../src/lib/types';
 import { pragueDateString, pragueTodayRange } from '../../src/lib/time';
 
 const CATEGORIES: CareCategory[] = ['cvrcci', 'banan', 'antib', 'mast'];
@@ -7,6 +7,7 @@ interface DashboardGecko {
   gecko: Gecko;
   today_events: CareEvent[];
   last_event_per_category: Record<CareCategory, CareEvent | null>;
+  last_shedding: SheddingEvent | null;
 }
 
 interface DashboardResponse {
@@ -22,7 +23,7 @@ interface DashboardResponse {
 export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
   const { start, end } = pragueTodayRange();
 
-  const [geckosRes, todayEventsRes, lastEventsRes, mistingTodayRes] = await env.DB.batch([
+  const [geckosRes, todayEventsRes, lastEventsRes, mistingTodayRes, lastSheddingRes] = await env.DB.batch([
     env.DB.prepare(
       `SELECT id, slug, name, color_hex, photo_url, birth_date, notes, created_at
        FROM geckos
@@ -48,12 +49,21 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
        WHERE ts >= ? AND ts < ?
        ORDER BY ts DESC`
     ).bind(start, end),
+    env.DB.prepare(
+      `SELECT id, gecko_id, ts, checked, check_reminded, note FROM (
+         SELECT id, gecko_id, ts, checked, check_reminded, note,
+                ROW_NUMBER() OVER (PARTITION BY gecko_id ORDER BY ts DESC) AS rn
+         FROM shedding_events
+       )
+       WHERE rn = 1`
+    ),
   ]);
 
   const geckos = geckosRes.results as unknown as Gecko[];
   const todayEvents = todayEventsRes.results as unknown as CareEvent[];
   const lastEvents = lastEventsRes.results as unknown as CareEvent[];
   const mistingToday = mistingTodayRes.results as unknown as MistingEvent[];
+  const lastShedding = lastSheddingRes.results as unknown as SheddingEvent[];
 
   const byGecko: DashboardGecko[] = geckos.map((g) => {
     const today_events = todayEvents.filter((e) => e.gecko_id === g.id);
@@ -65,7 +75,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
         last_event_per_category[ev.category] = ev;
       }
     }
-    return { gecko: g, today_events, last_event_per_category };
+    const last_shedding = lastShedding.find((s) => s.gecko_id === g.id) ?? null;
+    return { gecko: g, today_events, last_event_per_category, last_shedding };
   });
 
   const misting_today: DashboardResponse['misting_today'] = {

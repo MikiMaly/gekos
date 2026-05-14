@@ -133,7 +133,50 @@ CF Pages build běží na Linuxu, takže `cp -r` funguje. Lokální Windows dev 
 
 V Cloudflare Pages dashboard → projekt hub → Settings → Builds → **enable git submodules**.
 
-## Krok 5: Update workflow
+## Krok 5: Telegram notifikace (volitelné)
+
+Cron Worker v [cron/](cron/) posílá Telegram zprávy:
+- 09:00 Praha — ranní mlžení
+- 22:00 Praha — večerní mlžení
+- 11:00 Praha — staleness krmení (warn ≥2 dny, ultra ≥3 dny)
+- 24h+ po svlékání — kontrola
+
+### a) Vytvořit Telegram bota
+
+1. Otevři v Telegramu `@BotFather` → `/newbot` → zvol jméno (`gekos-bot`) a unikátní username
+2. BotFather ti pošle **token** — zkopíruj
+3. Spusť konverzaci s tím botem (`/start`), tím se ti přidělí chat_id
+4. Otevři `@userinfobot` → pošle ti tvoje **chat_id** (číslo)
+
+### b) Deploy cron Workeru
+
+V `C:\Users\mikim\gekos\cron`:
+
+```powershell
+npm install
+# nastavit secrets (interaktivně paste hodnoty):
+npx wrangler secret put BOT_TOKEN
+npx wrangler secret put TELEGRAM_CHAT_ID
+# zkopírovat database_id z hlavního wrangler.toml do cron/wrangler.toml
+npx wrangler deploy
+```
+
+### c) Otestovat ručně
+
+```powershell
+# wrangler ti po deploy řekne URL (něco jako https://gekos-cron.<acct>.workers.dev)
+curl -X POST "https://gekos-cron.<acct>.workers.dev/?hour=22"
+# pošle večerní reminder pokud dnes ještě nemlžil
+```
+
+### d) Tail logs
+
+```powershell
+cd cron
+npx wrangler tail
+```
+
+## Krok 6: Update workflow
 
 Když měníš gekos:
 ```powershell

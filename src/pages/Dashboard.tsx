@@ -69,6 +69,7 @@ export default function GeckosDashboard() {
               gecko={g.gecko}
               todayEvents={g.today_events}
               lastPerCategory={g.last_event_per_category}
+              lastShedding={g.last_shedding}
               onChange={load}
             />
           ))}

@@ -1,25 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
-import type { CareEvent, Gecko, GeckoSlug } from '../lib/types';
+import { ArrowLeft, Sparkles, Check } from 'lucide-react';
+import type { CareEvent, Gecko, GeckoSlug, SheddingEvent } from '../lib/types';
 import { api } from '../lib/api';
-import { CATEGORY_LABELS, formatDateTime } from '../lib/format';
+import { CATEGORY_LABELS, formatDateTime, relativeFromNow } from '../lib/format';
 
 export default function GeckoProfile() {
   const { slug } = useParams<{ slug: GeckoSlug }>();
   const [gecko, setGecko] = useState<Gecko | null>(null);
   const [events, setEvents] = useState<CareEvent[]>([]);
+  const [shedding, setShedding] = useState<SheddingEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!slug) return;
     try {
-      const [g, e] = await Promise.all([
+      const [g, e, s] = await Promise.all([
         api.geckos.get(slug),
         api.geckos.events.list(slug),
+        api.geckos.shedding.list(slug),
       ]);
       setGecko(g.gecko);
       setEvents(e.events);
+      setShedding(s.events);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -30,6 +33,18 @@ export default function GeckoProfile() {
     document.title = `${gecko?.name ?? 'Profil'} — Gekoni`;
     load();
   }, [load, gecko?.name]);
+
+  const logShedding = async () => {
+    if (!slug) return;
+    await api.geckos.shedding.create(slug);
+    load();
+  };
+
+  const markChecked = async (id: number) => {
+    if (!slug) return;
+    await api.geckos.shedding.markChecked(slug, id, true);
+    load();
+  };
 
   if (error) return <div className="max-w-3xl mx-auto p-6 text-destructive">Chyba: {error}</div>;
   if (!gecko) return <div className="max-w-3xl mx-auto p-6 text-muted-foreground">Načítám…</div>;
@@ -57,6 +72,55 @@ export default function GeckoProfile() {
             )}
           </div>
         </header>
+
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xl font-semibold inline-flex items-center gap-2">
+              <Sparkles className="w-5 h-5" /> Svlékání
+            </h2>
+            <button
+              onClick={logShedding}
+              className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-sm"
+            >
+              + Nové svlékání
+            </button>
+          </div>
+          {shedding.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Zatím žádné záznamy.</p>
+          ) : (
+            <ul className="space-y-2">
+              {shedding.map((ev) => (
+                <li
+                  key={ev.id}
+                  className="flex items-center justify-between py-2 px-3 rounded-md border border-border"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm">{formatDateTime(ev.ts)}</span>
+                    <span className="text-xs text-muted-foreground">{relativeFromNow(ev.ts)}</span>
+                    {ev.checked === 1 ? (
+                      <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-green-500/15 text-green-600">
+                        <Check className="w-3 h-3" /> zkontrolováno
+                      </span>
+                    ) : (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600">
+                        kontrola pending
+                      </span>
+                    )}
+                    {ev.note && <span className="text-sm text-muted-foreground">— {ev.note}</span>}
+                  </div>
+                  {ev.checked === 0 && (
+                    <button
+                      onClick={() => markChecked(ev.id)}
+                      className="text-xs px-2 py-1 rounded bg-secondary hover:bg-muted"
+                    >
+                      Označit zkontrolováno
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <h2 className="text-xl font-semibold mb-4">Historie péče</h2>
         {events.length === 0 ? (

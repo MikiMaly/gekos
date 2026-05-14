@@ -1,0 +1,17 @@
+name = "gekos-cron"
+main = "src/index.ts"
+compatibility_date = "2025-01-15"
+
+# Bezí každou hodinu na :00. Handler uvnitř zkontroluje hodinu v Europe/Prague
+# a podle ní vybírá co dělat (mlžení reminders, krmení staleness, svlékání kontroly).
+[triggers]
+crons = ["0 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gekos"
+database_id = "REPLACE_WITH_SAME_ID_AS_HUB_WRANGLER"
+migrations_dir = "../migrations"
+
+# Tajné hodnoty se nastaví přes `wrangler secret put BOT_TOKEN`
+# a `wrangler secret put TELEGRAM_CHAT_ID`.

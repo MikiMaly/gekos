@@ -31,6 +31,20 @@ export interface MistingEvent {
   note: string | null;
 }
 
+export interface SheddingEvent {
+  id: number;
+  gecko_id: number;
+  ts: string;
+  checked: 0 | 1;
+  check_reminded: 0 | 1;
+  note: string | null;
+}
+
+export interface CreateSheddingInput {
+  ts?: string;
+  note?: string;
+}
+
 export interface CreateCareEventInput {
   category: CareCategory;
   count?: number;     // default 1 server-side
