@@ -88,18 +88,11 @@ export default function GeckoProfile() {
             (rescueOn ? 'border-red-500/30 bg-red-500/5' : 'border-border')
           }
         >
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <Stethoscope
-              className={'w-5 h-5 mt-0.5 ' + (rescueOn ? 'text-red-500' : 'text-muted-foreground')}
+              className={'w-5 h-5 ' + (rescueOn ? 'text-red-500' : 'text-muted-foreground')}
             />
-            <div>
-              <div className="font-medium">Rescue mód {rescueOn ? '— zapnuto' : ''}</div>
-              <p className="text-sm text-muted-foreground">
-                Když léčíš (typicky po problémech se svlékáním), zapni rescue mód —
-                v kartě na dashboardu se zobrazí kategorie <b>antibiotika</b> a <b>mast</b>.
-                Defaultně skryté, ať karty nezabírají místo.
-              </p>
-            </div>
+            <div className="font-medium">Rescue mód {rescueOn ? '— zapnuto' : ''}</div>
           </div>
           <button
             onClick={toggleRescue}
