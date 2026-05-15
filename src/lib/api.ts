@@ -10,7 +10,7 @@ import type {
   SheddingEvent,
 } from './types';
 
-const BASE = '/api';
+const BASE = '/api/geckos';
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -29,8 +29,8 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   geckos: {
-    list: () => req<{ geckos: Gecko[] }>('/geckos'),
-    get: (slug: GeckoSlug) => req<{ gecko: Gecko }>(`/geckos/${slug}`),
+    list: () => req<{ geckos: Gecko[] }>(''),
+    get: (slug: GeckoSlug) => req<{ gecko: Gecko }>(`/${slug}`),
     events: {
       list: (slug: GeckoSlug, params?: { from?: string; to?: string; category?: CareCategory }) => {
         const qs = new URLSearchParams();
@@ -38,33 +38,33 @@ export const api = {
         if (params?.to) qs.set('to', params.to);
         if (params?.category) qs.set('category', params.category);
         const q = qs.toString();
-        return req<{ events: CareEvent[] }>(`/geckos/${slug}/events${q ? `?${q}` : ''}`);
+        return req<{ events: CareEvent[] }>(`/${slug}/events${q ? `?${q}` : ''}`);
       },
       last: (slug: GeckoSlug) =>
-        req<{ last: Record<CareCategory, CareEvent | null> }>(`/geckos/${slug}/events/last`),
+        req<{ last: Record<CareCategory, CareEvent | null> }>(`/${slug}/events/last`),
       create: (slug: GeckoSlug, body: CreateCareEventInput) =>
-        req<{ event: CareEvent }>(`/geckos/${slug}/events`, {
+        req<{ event: CareEvent }>(`/${slug}/events`, {
           method: 'POST',
           body: JSON.stringify(body),
         }),
       remove: (slug: GeckoSlug, id: number) =>
-        req<{ deleted: number }>(`/geckos/${slug}/events?id=${id}`, { method: 'DELETE' }),
+        req<{ deleted: number }>(`/${slug}/events?id=${id}`, { method: 'DELETE' }),
     },
     shedding: {
       list: (slug: GeckoSlug) =>
-        req<{ events: SheddingEvent[] }>(`/geckos/${slug}/shedding`),
+        req<{ events: SheddingEvent[] }>(`/${slug}/shedding`),
       create: (slug: GeckoSlug, body: CreateSheddingInput = {}) =>
-        req<{ event: SheddingEvent }>(`/geckos/${slug}/shedding`, {
+        req<{ event: SheddingEvent }>(`/${slug}/shedding`, {
           method: 'POST',
           body: JSON.stringify(body),
         }),
       markChecked: (slug: GeckoSlug, id: number, checked = true) =>
-        req<{ event: SheddingEvent }>(`/geckos/${slug}/shedding?id=${id}`, {
+        req<{ event: SheddingEvent }>(`/${slug}/shedding?id=${id}`, {
           method: 'PATCH',
           body: JSON.stringify({ checked }),
         }),
       remove: (slug: GeckoSlug, id: number) =>
-        req<{ deleted: number }>(`/geckos/${slug}/shedding?id=${id}`, { method: 'DELETE' }),
+        req<{ deleted: number }>(`/${slug}/shedding?id=${id}`, { method: 'DELETE' }),
     },
   },
   misting: {
