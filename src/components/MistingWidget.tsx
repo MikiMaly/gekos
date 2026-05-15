@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Cloud, Sun, Moon, Sparkles, Check, Plus, Undo2 } from 'lucide-react';
+import { Cloud, Sun, Moon, Sparkles, Check, Plus, Undo2, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router';
 import type { MistingEvent, PartOfDay } from '../lib/types';
 import { api } from '../lib/api';
 import { formatTime, PART_OF_DAY_LABELS } from '../lib/format';
@@ -98,9 +99,23 @@ export default function MistingWidget({ today, onChange }: Props) {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 relative">
-      <header className="flex items-center gap-2 mb-3">
-        <Cloud className="w-5 h-5 text-blue-500" />
-        <h3 className="text-xl font-semibold">Mlžení terária</h3>
+      <header className="flex items-center justify-between gap-2 mb-3">
+        <Link
+          to="/private/geckos/misting"
+          className="flex items-center gap-2 group"
+        >
+          <Cloud className="w-5 h-5 text-blue-500" />
+          <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
+            Mlžení terária
+          </h3>
+          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        </Link>
+        <Link
+          to="/private/geckos/misting"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Historie →
+        </Link>
       </header>
 
       <div className="flex flex-col">
