@@ -2,14 +2,15 @@
 -- Reálné aplikované migrace jsou v migrations/.
 
 CREATE TABLE geckos (
-  id          INTEGER PRIMARY KEY,
-  slug        TEXT    NOT NULL UNIQUE,           -- 'bily' | 'bezovy' | 'hnedy'
-  name        TEXT    NOT NULL,
-  color_hex   TEXT,
-  photo_url   TEXT,
-  birth_date  TEXT,
-  notes       TEXT,
-  created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+  id           INTEGER PRIMARY KEY,
+  slug         TEXT    NOT NULL UNIQUE,           -- 'bily' | 'bezovy' | 'hnedy'
+  name         TEXT    NOT NULL,
+  color_hex    TEXT,
+  photo_url    TEXT,
+  birth_date   TEXT,
+  notes        TEXT,
+  rescue_mode  INTEGER NOT NULL DEFAULT 0 CHECK(rescue_mode IN (0,1)),
+  created_at   TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE care_events (

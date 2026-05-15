@@ -26,7 +26,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
 
   const [geckosRes, todayEventsRes, lastEventsRes, mistingTodayRes, lastSheddingRes] = await env.DB.batch([
     env.DB.prepare(
-      `SELECT id, slug, name, color_hex, photo_url, birth_date, notes, created_at
+      `SELECT id, slug, name, color_hex, photo_url, birth_date, notes, rescue_mode, created_at
        FROM geckos
        ORDER BY id`
     ),

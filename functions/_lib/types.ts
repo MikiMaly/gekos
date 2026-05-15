@@ -12,6 +12,7 @@ export interface Gecko {
   photo_url: string | null;
   birth_date: string | null;
   notes: string | null;
+  rescue_mode: 0 | 1;
   created_at: string;
 }
 

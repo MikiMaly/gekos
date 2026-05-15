@@ -31,6 +31,11 @@ export const api = {
   geckos: {
     list: () => req<{ geckos: Gecko[] }>(''),
     get: (slug: GeckoSlug) => req<{ gecko: Gecko }>(`/${slug}`),
+    update: (slug: GeckoSlug, body: { rescue_mode?: boolean; notes?: string; birth_date?: string }) =>
+      req<{ gecko: Gecko }>(`/${slug}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
     events: {
       list: (slug: GeckoSlug, params?: { from?: string; to?: string; category?: CareCategory }) => {
         const qs = new URLSearchParams();

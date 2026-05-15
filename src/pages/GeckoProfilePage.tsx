@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
-import { ArrowLeft, Sparkles, Check } from 'lucide-react';
+import { ArrowLeft, Sparkles, Check, Stethoscope } from 'lucide-react';
 import type { CareEvent, Gecko, GeckoSlug, SheddingEvent } from '../lib/types';
 import { api } from '../lib/api';
 import { CATEGORY_LABELS, formatDateTime, relativeFromNow } from '../lib/format';
@@ -46,8 +46,17 @@ export default function GeckoProfile() {
     load();
   };
 
+  const toggleRescue = async () => {
+    if (!slug || !gecko) return;
+    const next = gecko.rescue_mode === 1 ? false : true;
+    const r = await api.geckos.update(slug, { rescue_mode: next });
+    setGecko(r.gecko);
+  };
+
   if (error) return <div className="max-w-3xl mx-auto p-6 text-destructive">Chyba: {error}</div>;
   if (!gecko) return <div className="max-w-3xl mx-auto p-6 text-muted-foreground">Načítám…</div>;
+
+  const rescueOn = gecko.rescue_mode === 1;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -65,13 +74,45 @@ export default function GeckoProfile() {
             style={{ background: gecko.color_hex ?? '#ccc' }}
             aria-hidden
           />
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-semibold">{gecko.name}</h1>
             {gecko.birth_date && (
               <p className="text-sm text-muted-foreground">narozen {gecko.birth_date}</p>
             )}
           </div>
         </header>
+
+        <section
+          className={
+            'mb-8 rounded-xl border p-4 flex items-center justify-between gap-4 ' +
+            (rescueOn ? 'border-red-500/30 bg-red-500/5' : 'border-border')
+          }
+        >
+          <div className="flex items-start gap-3">
+            <Stethoscope
+              className={'w-5 h-5 mt-0.5 ' + (rescueOn ? 'text-red-500' : 'text-muted-foreground')}
+            />
+            <div>
+              <div className="font-medium">Rescue mód {rescueOn ? '— zapnuto' : ''}</div>
+              <p className="text-sm text-muted-foreground">
+                Když léčíš (typicky po problémech se svlékáním), zapni rescue mód —
+                v kartě na dashboardu se zobrazí kategorie <b>antibiotika</b> a <b>mast</b>.
+                Defaultně skryté, ať karty nezabírají místo.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={toggleRescue}
+            className={
+              'px-3 py-1.5 rounded-md text-sm shrink-0 ' +
+              (rescueOn
+                ? 'bg-red-500 text-white hover:bg-red-500/90'
+                : 'bg-secondary hover:bg-muted')
+            }
+          >
+            {rescueOn ? 'Vypnout' : 'Zapnout'}
+          </button>
+        </section>
 
         <section className="mb-8">
           <div className="flex items-center justify-between mb-3">

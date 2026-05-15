@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bug, Banana, Pill, Droplet, Plus, ChevronDown, ChevronUp, Undo2, Sparkles, AlertTriangle } from 'lucide-react';
+import { Bug, Banana, Pill, Droplet, Plus, ChevronDown, ChevronUp, Undo2, Sparkles, AlertTriangle, Stethoscope } from 'lucide-react';
 import { Link } from 'react-router';
 import type { CareCategory, CareEvent, Gecko, GeckoSlug, SheddingEvent } from '../lib/types';
 import { CATEGORY_LABELS, formatTime, relativeFromNow } from '../lib/format';
@@ -12,7 +12,8 @@ const CATEGORY_ICONS: Record<CareCategory, typeof Bug> = {
   mast: Droplet,
 };
 
-const CATEGORIES: CareCategory[] = ['cvrcci', 'banan', 'antib', 'mast'];
+const DEFAULT_CATEGORIES: CareCategory[] = ['cvrcci', 'banan'];
+const RESCUE_CATEGORIES: CareCategory[] = ['cvrcci', 'banan', 'antib', 'mast'];
 
 interface Props {
   gecko: Gecko;
@@ -43,6 +44,9 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
   const [lastCreated, setLastCreated] = useState<CareEvent | null>(null);
   const [count, setCount] = useState<string>('1');
   const [note, setNote] = useState<string>('');
+
+  const rescueOn = gecko.rescue_mode === 1;
+  const categories = rescueOn ? RESCUE_CATEGORIES : DEFAULT_CATEGORIES;
 
   const submit = async (category: CareCategory, body?: { count?: number; note?: string }) => {
     setPending(category);
@@ -84,24 +88,32 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
   return (
     <div className="rounded-2xl border border-border bg-card p-6 flex flex-col gap-3 relative">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <span
             className="w-10 h-10 rounded-full border-2 border-border shrink-0"
             style={{ background: gecko.color_hex ?? '#ccc' }}
             aria-hidden
           />
-          <h3 className="text-xl font-semibold">{gecko.name}</h3>
+          <h3 className="text-xl font-semibold truncate">{gecko.name}</h3>
+          {rescueOn && (
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/15 text-red-600 text-xs shrink-0"
+              title="Rescue mód aktivní — zobrazuje se antib a mast"
+            >
+              <Stethoscope className="w-3 h-3" /> rescue
+            </span>
+          )}
         </div>
         <Link
           to={`/private/geckos/${gecko.slug}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="text-sm text-muted-foreground hover:text-foreground shrink-0"
         >
           Profil →
         </Link>
       </header>
 
       <ul className="flex flex-col gap-1">
-        {CATEGORIES.map((cat) => {
+        {categories.map((cat) => {
           const Icon = CATEGORY_ICONS[cat];
           const today = summarize(todayEvents, cat);
           const last = lastPerCategory[cat];
