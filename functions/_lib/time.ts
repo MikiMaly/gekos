@@ -57,6 +57,26 @@ export function pragueTodayRange(): { start: string; end: string } {
   return pragueDayRange(pragueDateString());
 }
 
+// Vrátí UTC instant odpovídající "wall time" hodině v Praze daného dne.
+// pragueWallTimeToUtc('2026-05-15', 9) == ten okamžik, kdy hodiny v Praze
+// ukazují 09:00 dne 2026-05-15. Funguje přes DST přechody.
+export function pragueWallTimeToUtc(pragueYmd: string, hour: number, minute = 0): Date {
+  const [y, m, d] = pragueYmd.split('-').map(Number);
+  const guess = new Date(Date.UTC(y, m - 1, d, hour, minute, 0));
+  const parts = pragueParts(guess);
+  const guessAsPragueMs = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second
+  );
+  const desiredAsPragueMs = Date.UTC(y, m - 1, d, hour, minute, 0);
+  const offsetMs = desiredAsPragueMs - guessAsPragueMs;
+  return new Date(guess.getTime() + offsetMs);
+}
+
 export function pragueMonthRange(year: number, monthOneBased: number): { start: string; end: string } {
   const startYmd = `${year}-${String(monthOneBased).padStart(2, '0')}-01`;
   const start = pragueMidnightUtc(startYmd);

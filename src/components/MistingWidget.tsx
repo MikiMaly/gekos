@@ -3,6 +3,7 @@ import { Cloud, Sun, Moon, Sparkles, Check, Plus, Undo2 } from 'lucide-react';
 import type { MistingEvent, PartOfDay } from '../lib/types';
 import { api } from '../lib/api';
 import { formatTime, PART_OF_DAY_LABELS } from '../lib/format';
+import { pragueDateString, pragueWallTimeToUtc } from '../lib/time';
 
 interface Props {
   today: {
@@ -19,6 +20,13 @@ const ICONS: Record<PartOfDay, typeof Cloud> = {
   nahodne: Sparkles,
 };
 
+// Pevné časy slotů — pokud zapíšu ráno odpoledne, chci v záznamu 09:00 dnes,
+// ne aktuální čas. Náhodně si nechává reálný okamžik kliknutí.
+const SLOT_HOUR: Record<Exclude<PartOfDay, 'nahodne'>, number> = {
+  rano: 9,
+  vecer: 22,
+};
+
 export default function MistingWidget({ today, onChange }: Props) {
   const [pending, setPending] = useState<PartOfDay | null>(null);
   const [lastCreated, setLastCreated] = useState<MistingEvent | null>(null);
@@ -26,7 +34,11 @@ export default function MistingWidget({ today, onChange }: Props) {
   const submit = async (part: PartOfDay) => {
     setPending(part);
     try {
-      const r = await api.misting.create({ part_of_day: part });
+      const ts =
+        part === 'nahodne'
+          ? undefined
+          : pragueWallTimeToUtc(pragueDateString(), SLOT_HOUR[part]).toISOString();
+      const r = await api.misting.create({ part_of_day: part, ts });
       setLastCreated(r.event);
       onChange();
       setTimeout(() => {
