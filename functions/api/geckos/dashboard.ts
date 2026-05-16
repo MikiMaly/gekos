@@ -1,6 +1,6 @@
 import type { Env } from '../../_lib/env';
 import type { CareCategory, CareEvent, Gecko, MistingEvent, SheddingEvent } from '../../_lib/types';
-import { pragueDateString, pragueTodayRange } from '../../_lib/time';
+import { pragueLogicalDateString, pragueLogicalTodayRange } from '../../_lib/time';
 
 const CATEGORIES: CareCategory[] = ['cvrcci', 'banan', 'antib', 'mast'];
 
@@ -22,7 +22,7 @@ interface DashboardResponse {
 }
 
 export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
-  const { start, end } = pragueTodayRange();
+  const { start, end } = pragueLogicalTodayRange();
 
   const [geckosRes, todayEventsRes, lastEventsRes, mistingTodayRes, lastSheddingRes] = await env.DB.batch([
     env.DB.prepare(
@@ -96,7 +96,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
   }
 
   const response: DashboardResponse = {
-    date_prague: pragueDateString(),
+    date_prague: pragueLogicalDateString(),
     geckos: byGecko,
     misting_today,
   };

@@ -4,12 +4,14 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { CareEvent, Gecko, MistingEvent } from '../lib/types';
 import { api } from '../lib/api';
 import { CATEGORY_LABELS, PART_OF_DAY_LABELS, formatTime } from '../lib/format';
-import { pragueDateString, pragueMonthRange } from '../lib/time';
+import { pragueLogicalDateString, pragueMonthRange } from '../lib/time';
 
 const DAY_NAMES = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 
+// Grouping podle "logického dne" (04:00 → 04:00) — záznam ve 02:00 patří
+// do včerejška, jak to uživatel přirozeně vnímá.
 function pragueYmd(ts: string): string {
-  return pragueDateString(new Date(ts));
+  return pragueLogicalDateString(new Date(ts));
 }
 
 export default function GeckosCalendar() {
@@ -113,7 +115,7 @@ export default function GeckosCalendar() {
             const care = careByDay[cell] ?? [];
             const misting = mistingByDay[cell] ?? [];
             const day = Number(cell.slice(-2));
-            const isToday = cell === pragueDateString();
+            const isToday = cell === pragueLogicalDateString();
             const selected = cell === selectedDay;
             return (
               <button

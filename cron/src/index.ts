@@ -6,6 +6,11 @@ interface Env {
 
 const TZ = 'Europe/Prague';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+// Logický den uživatele (zrcadlí functions/_lib/time.ts):
+// Den "trvá" 04:00 Praha → 04:00 dalšího kalendářního dne.
+// Týká se: mlžení rano/vecer "is done today", idempotency for_date.
+// Netýká se: feeding staleness (počítáme reálné hodiny / 24).
+const LOGICAL_DAY_CUTOFF_HOUR = 4;
 
 interface PragueNow {
   ymd: string;
@@ -30,9 +35,9 @@ function pragueNow(now: Date = new Date()): PragueNow {
   };
 }
 
-function pragueMidnightUtc(ymd: string): Date {
+function pragueWallTimeToUtc(ymd: string, hour: number): Date {
   const [y, m, d] = ymd.split('-').map(Number);
-  const guess = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+  const guess = new Date(Date.UTC(y, m - 1, d, hour, 0, 0));
   const fmt = new Intl.DateTimeFormat('en-CA', {
     timeZone: TZ,
     year: 'numeric', month: '2-digit', day: '2-digit',
@@ -40,15 +45,29 @@ function pragueMidnightUtc(ymd: string): Date {
   });
   const p = fmt.formatToParts(guess);
   const get = (t: Intl.DateTimeFormatPartTypes) => Number(p.find((x) => x.type === t)!.value);
-  const h = get('hour');
-  const asPragueMs = Date.UTC(get('year'), get('month') - 1, get('day'), h === 24 ? 0 : h, get('minute'), get('second'));
-  return new Date(guess.getTime() + (guess.getTime() - asPragueMs));
+  const gh = get('hour');
+  const asPragueMs = Date.UTC(get('year'), get('month') - 1, get('day'), gh === 24 ? 0 : gh, get('minute'), get('second'));
+  const desiredAsPragueMs = Date.UTC(y, m - 1, d, hour, 0, 0);
+  return new Date(guess.getTime() + (desiredAsPragueMs - asPragueMs));
 }
 
-function todayRange(now: Date = new Date()): { start: string; end: string } {
-  const { ymd } = pragueNow(now);
-  const start = pragueMidnightUtc(ymd);
-  const end = new Date(start.getTime() + ONE_DAY_MS);
+function pragueLogicalYmd(now: Date = new Date()): string {
+  const { ymd, hour } = pragueNow(now);
+  if (hour >= LOGICAL_DAY_CUTOFF_HOUR) return ymd;
+  const [y, m, d] = ymd.split('-').map(Number);
+  const prev = new Date(Date.UTC(y, m - 1, d));
+  prev.setUTCDate(prev.getUTCDate() - 1);
+  return `${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, '0')}-${String(prev.getUTCDate()).padStart(2, '0')}`;
+}
+
+function logicalTodayRange(now: Date = new Date()): { start: string; end: string } {
+  const today = pragueLogicalYmd(now);
+  const start = pragueWallTimeToUtc(today, LOGICAL_DAY_CUTOFF_HOUR);
+  const [y, m, d] = today.split('-').map(Number);
+  const next = new Date(Date.UTC(y, m - 1, d));
+  next.setUTCDate(next.getUTCDate() + 1);
+  const nextYmd = `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}-${String(next.getUTCDate()).padStart(2, '0')}`;
+  const end = pragueWallTimeToUtc(nextYmd, LOGICAL_DAY_CUTOFF_HOUR);
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
@@ -82,7 +101,7 @@ async function reserveNotification(env: Env, kind: string, forDate: string): Pro
 }
 
 async function mistingExistsToday(env: Env, part: 'rano' | 'vecer'): Promise<boolean> {
-  const { start, end } = todayRange();
+  const { start, end } = logicalTodayRange();
   const row = await env.DB.prepare(
     `SELECT 1 AS x FROM misting_events WHERE part_of_day = ? AND ts >= ? AND ts < ? LIMIT 1`
   )
@@ -166,7 +185,8 @@ async function checkSheddingFollowups(env: Env): Promise<void> {
 export default {
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     const work = (async () => {
-      const { ymd, hour } = pragueNow();
+      const { hour } = pragueNow();
+      const ymd = pragueLogicalYmd(); // for_date pro idempotency = logický den
 
       if (hour === 9) await checkMistingMorning(env, ymd);
       if (hour === 22) await checkMistingEvening(env, ymd);
@@ -190,8 +210,9 @@ export default {
     const url = new URL(request.url);
     const hourParam = url.searchParams.get('hour');
     const hourOverride = hourParam ? Number(hourParam) : null;
-    const { ymd, hour: realHour } = pragueNow();
+    const { hour: realHour } = pragueNow();
     const hour = hourOverride ?? realHour;
+    const ymd = pragueLogicalYmd();
 
     if (hour === 9) await checkMistingMorning(env, ymd);
     if (hour === 22) await checkMistingEvening(env, ymd);

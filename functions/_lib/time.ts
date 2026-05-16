@@ -77,6 +77,42 @@ export function pragueWallTimeToUtc(pragueYmd: string, hour: number, minute = 0)
   return new Date(guess.getTime() + offsetMs);
 }
 
+// "Logický den" — uživatelská konvence: vše co dělám než jdu spát počítám
+// jako ten den. Logický den začíná v 04:00 Praha a končí ve 04:00 dalšího
+// kalendářního dne. Klik v 02:30 v noci tedy spadá do včerejšího logického dne.
+// Aplikuje se na: dashboard "dnes", kalendář grouping, mlžení slot časy,
+// cron mlžení reminder. Pro náhodné mlžení a staleness krmení se nepoužívá.
+const LOGICAL_DAY_CUTOFF_HOUR = 4;
+
+export function pragueLogicalDateString(d: Date = new Date()): string {
+  const p = pragueParts(d);
+  let year = p.year;
+  let month = p.month;
+  let day = p.day;
+  if (p.hour < LOGICAL_DAY_CUTOFF_HOUR) {
+    const prev = new Date(Date.UTC(year, month - 1, day));
+    prev.setUTCDate(prev.getUTCDate() - 1);
+    year = prev.getUTCFullYear();
+    month = prev.getUTCMonth() + 1;
+    day = prev.getUTCDate();
+  }
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+export function pragueLogicalDayRange(logicalYmd: string): { start: string; end: string } {
+  const start = pragueWallTimeToUtc(logicalYmd, LOGICAL_DAY_CUTOFF_HOUR);
+  const [y, m, d] = logicalYmd.split('-').map(Number);
+  const next = new Date(Date.UTC(y, m - 1, d));
+  next.setUTCDate(next.getUTCDate() + 1);
+  const nextYmd = `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}-${String(next.getUTCDate()).padStart(2, '0')}`;
+  const end = pragueWallTimeToUtc(nextYmd, LOGICAL_DAY_CUTOFF_HOUR);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+export function pragueLogicalTodayRange(): { start: string; end: string } {
+  return pragueLogicalDayRange(pragueLogicalDateString());
+}
+
 export function pragueMonthRange(year: number, monthOneBased: number): { start: string; end: string } {
   const startYmd = `${year}-${String(monthOneBased).padStart(2, '0')}-01`;
   const start = pragueMidnightUtc(startYmd);
