@@ -5,6 +5,7 @@ import type { CareCategory, CareEvent, Gecko, MistingEvent } from '../lib/types'
 import { api } from '../lib/api';
 import { CATEGORY_LABELS, PART_OF_DAY_LABELS, formatTime } from '../lib/format';
 import { pragueLogicalDateString, pragueMonthRange } from '../lib/time';
+import DayNotesPanel from '../components/DayNotesPanel';
 
 const DAY_NAMES = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 
@@ -239,14 +240,19 @@ export default function GeckosCalendar() {
         </div>
 
         {selectedDay && (
-          <section className="mt-6 rounded-xl border border-border p-4">
-            <h2 className="text-lg font-semibold mb-3">{selectedDay}</h2>
-            <DayDetail
-              careEvents={careByDay[selectedDay] ?? []}
-              mistingEvents={mistingByDay[selectedDay] ?? []}
-              geckoById={geckoById}
-            />
-          </section>
+          <>
+            <section className="mt-6 rounded-xl border border-border p-4">
+              <h2 className="text-lg font-semibold mb-3">{selectedDay}</h2>
+              <DayDetail
+                careEvents={careByDay[selectedDay] ?? []}
+                mistingEvents={mistingByDay[selectedDay] ?? []}
+                geckoById={geckoById}
+              />
+            </section>
+            <div className="mt-4">
+              <DayNotesPanel date={selectedDay} geckos={geckos} compact />
+            </div>
+          </>
         )}
       </div>
     </div>

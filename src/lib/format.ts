@@ -34,6 +34,24 @@ export function formatTime(iso: string): string {
   return timeFmt.format(new Date(iso));
 }
 
+const weekdayFmt = new Intl.DateTimeFormat('cs-CZ', { timeZone: TZ, weekday: 'long' });
+const dayMonthYearFmt = new Intl.DateTimeFormat('cs-CZ', {
+  timeZone: TZ,
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+// "Pondělí · 19. května 2026" pro hlavičku skupiny v historii
+export function formatDateWithWeekday(ymd: string): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  // 12:00 UTC se v Praze projeví jako odpoledne stejného dne i během DST
+  const date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const weekday = weekdayFmt.format(date);
+  const dmy = dayMonthYearFmt.format(date);
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} · ${dmy}`;
+}
+
 export function relativeFromNow(iso: string, now: Date = new Date()): string {
   const diffMs = now.getTime() - new Date(iso).getTime();
   const diffMin = Math.round(diffMs / 60000);

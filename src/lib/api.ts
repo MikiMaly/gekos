@@ -2,8 +2,10 @@ import type {
   CareCategory,
   CareEvent,
   CreateCareEventInput,
+  CreateDayNoteInput,
   CreateMistingInput,
   CreateSheddingInput,
+  DayNote,
   Gecko,
   GeckoSlug,
   MistingEvent,
@@ -89,6 +91,24 @@ export const api = {
       req<{ deleted: number }>(`/misting?id=${id}`, { method: 'DELETE' }),
   },
   dashboard: () => req<DashboardResponse>('/dashboard'),
+  dayNotes: {
+    list: (params?: { date?: string; from?: string; to?: string; gecko?: GeckoSlug }) => {
+      const qs = new URLSearchParams();
+      if (params?.date) qs.set('date', params.date);
+      if (params?.from) qs.set('from', params.from);
+      if (params?.to) qs.set('to', params.to);
+      if (params?.gecko) qs.set('gecko', params.gecko);
+      const q = qs.toString();
+      return req<{ notes: DayNote[] }>(`/day-notes${q ? `?${q}` : ''}`);
+    },
+    create: (body: CreateDayNoteInput) =>
+      req<{ note: DayNote }>('/day-notes', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    remove: (id: number) =>
+      req<{ deleted: number }>(`/day-notes?id=${id}`, { method: 'DELETE' }),
+  },
 };
 
 export interface DashboardGecko {

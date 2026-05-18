@@ -60,3 +60,17 @@ export interface CreateSheddingInput {
   ts?: string;
   note?: string;
 }
+
+export interface DayNote {
+  id: number;
+  date_prague: string;          // YYYY-MM-DD logický den
+  gecko_id: number | null;      // null = obecná poznámka
+  text: string;
+  created_at: string;
+}
+
+export interface CreateDayNoteInput {
+  date_prague?: string;         // default = dnešní logický den
+  gecko_id?: number | null;
+  text: string;
+}

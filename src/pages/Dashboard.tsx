@@ -4,6 +4,7 @@ import { Calendar as CalendarIcon, ArrowLeft } from 'lucide-react';
 import { api, type DashboardResponse } from '../lib/api';
 import GeckoCard from '../components/GeckoCard';
 import MistingWidget from '../components/MistingWidget';
+import DayNotesPanel from '../components/DayNotesPanel';
 
 export default function GeckosDashboard() {
   const [data, setData] = useState<DashboardResponse | null>(null);
@@ -76,6 +77,10 @@ export default function GeckosDashboard() {
         </section>
 
         <MistingWidget today={data.misting_today} onChange={load} />
+
+        <div className="mt-6">
+          <DayNotesPanel date={data.date_prague} geckos={data.geckos.map((g) => g.gecko)} />
+        </div>
       </div>
     </div>
   );
