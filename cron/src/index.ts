@@ -185,11 +185,11 @@ async function mistingCheckEvening(env: Env, ymd: string): Promise<void> {
 async function checkFeedingStaleness(env: Env, ymd: string): Promise<void> {
   for (const { gecko, daysAgo } of await feedingStaleness(env)) {
     if (daysAgo === null) continue;
-    if (daysAgo >= 3) {
+    if (daysAgo >= 4) {
       if (await reserve(env, `feeding_stale_ultra:${gecko.slug}`, ymd)) {
         await sendMessage(env, `🚨 <b>${gecko.name}</b> už ${daysAgo} dní bez krmení!`);
       }
-    } else if (daysAgo >= 2) {
+    } else if (daysAgo >= 3) {
       if (await reserve(env, `feeding_stale_warn:${gecko.slug}`, ymd)) {
         await sendMessage(env, `⚠️ <b>${gecko.name}</b> ${daysAgo} dní bez krmení`);
       }
