@@ -29,6 +29,7 @@ export interface MistingEvent {
   id: number;
   ts: string;
   part_of_day: PartOfDay;
+  done: 0 | 1;
   note: string | null;
 }
 
@@ -50,6 +51,7 @@ export interface CreateCareEventInput {
 
 export interface CreateMistingInput {
   part_of_day: PartOfDay;
+  done?: boolean;       // default true (rošeno); false = nerošeno
   note?: string;
   ts?: string;
 }

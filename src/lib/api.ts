@@ -102,8 +102,8 @@ export interface DashboardResponse {
   date_prague: string;
   geckos: DashboardGecko[];
   misting_today: {
-    rano: { latest_ts: string | null };
-    vecer: { latest_ts: string | null };
+    rano: { latest_ts: string | null; latest_done: 0 | 1 | null };
+    vecer: { latest_ts: string | null; latest_done: 0 | 1 | null };
     nahodne: { count: number; latest_ts: string | null };
   };
 }

@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Cloud, Sun, Moon, Sparkles, Check, Plus, Undo2, ArrowRight } from 'lucide-react';
+import { Cloud, Sun, Moon, Sparkles, Check, X, Plus, Undo2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 import type { MistingEvent, PartOfDay } from '../lib/types';
 import { api } from '../lib/api';
 import { formatTime, PART_OF_DAY_LABELS } from '../lib/format';
-import { pragueLogicalDateString, pragueWallTimeToUtc } from '../lib/time';
+import { pragueDateString, pragueWallTimeToUtc } from '../lib/time';
 
 interface Props {
   today: {
-    rano: { latest_ts: string | null };
-    vecer: { latest_ts: string | null };
+    rano: { latest_ts: string | null; latest_done: 0 | 1 | null };
+    vecer: { latest_ts: string | null; latest_done: 0 | 1 | null };
     nahodne: { count: number; latest_ts: string | null };
   };
   onChange: () => void;
@@ -21,8 +21,6 @@ const ICONS: Record<PartOfDay, typeof Cloud> = {
   nahodne: Sparkles,
 };
 
-// Pevné časy slotů — pokud zapíšu ráno odpoledne, chci v záznamu 09:00 dnes,
-// ne aktuální čas. Náhodně si nechává reálný okamžik kliknutí.
 const SLOT_HOUR: Record<Exclude<PartOfDay, 'nahodne'>, number> = {
   rano: 9,
   vecer: 22,
@@ -38,7 +36,7 @@ export default function MistingWidget({ today, onChange }: Props) {
       const ts =
         part === 'nahodne'
           ? undefined
-          : pragueWallTimeToUtc(pragueLogicalDateString(), SLOT_HOUR[part]).toISOString();
+          : pragueWallTimeToUtc(pragueDateString(), SLOT_HOUR[part]).toISOString();
       const r = await api.misting.create({ part_of_day: part, ts });
       setLastCreated(r.event);
       onChange();
@@ -59,16 +57,30 @@ export default function MistingWidget({ today, onChange }: Props) {
 
   const row = (part: PartOfDay) => {
     const Icon = ICONS[part];
-    const done = part === 'nahodne' ? today.nahodne.count > 0 : today[part].latest_ts !== null;
-    const ts = part === 'nahodne' ? today.nahodne.latest_ts : today[part].latest_ts;
-    const subtitle =
-      part === 'nahodne'
-        ? today.nahodne.count > 0
-          ? `${today.nahodne.count}× dnes · naposledy ${ts ? formatTime(ts) : ''}`
-          : 'zatím dnes ne'
-        : ts
-        ? `✓ ${formatTime(ts)}`
-        : 'zatím dnes ne';
+    let state: 'done' | 'skipped' | 'pending';
+    let ts: string | null;
+    let subtitle: string;
+
+    if (part === 'nahodne') {
+      state = today.nahodne.count > 0 ? 'done' : 'pending';
+      ts = today.nahodne.latest_ts;
+      subtitle =
+        today.nahodne.count > 0
+          ? `${today.nahodne.count}× dnes${ts ? ` · ${formatTime(ts)}` : ''}`
+          : 'zatím dnes ne';
+    } else {
+      const slot = today[part];
+      if (slot.latest_done === 1) state = 'done';
+      else if (slot.latest_done === 0) state = 'skipped';
+      else state = 'pending';
+      ts = slot.latest_ts;
+      subtitle =
+        state === 'done'
+          ? `✓ rošeno · ${ts ? formatTime(ts) : ''}`
+          : state === 'skipped'
+          ? `✗ nerošeno · ${ts ? formatTime(ts) : ''}`
+          : 'zatím dnes ne';
+    }
 
     return (
       <div
@@ -76,7 +88,16 @@ export default function MistingWidget({ today, onChange }: Props) {
         className="flex items-center justify-between gap-3 py-2.5 border-b border-border/40 last:border-0"
       >
         <div className="flex items-center gap-3 min-w-0">
-          <Icon className={'w-4 h-4 ' + (done ? 'text-blue-500' : 'text-muted-foreground')} />
+          <Icon
+            className={
+              'w-4 h-4 ' +
+              (state === 'done'
+                ? 'text-blue-500'
+                : state === 'skipped'
+                ? 'text-red-500'
+                : 'text-muted-foreground')
+            }
+          />
           <span className="font-medium">{PART_OF_DAY_LABELS[part]}</span>
           <span className="text-xs text-muted-foreground truncate">{subtitle}</span>
         </div>
@@ -85,13 +106,21 @@ export default function MistingWidget({ today, onChange }: Props) {
           disabled={pending === part}
           className={
             'w-9 h-9 rounded-md flex items-center justify-center disabled:opacity-50 ' +
-            (done
+            (state === 'done'
               ? 'bg-blue-500/15 text-blue-600 hover:bg-blue-500/25'
+              : state === 'skipped'
+              ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25'
               : 'bg-primary/10 text-primary hover:bg-primary/20')
           }
           aria-label={`Zaznamenat mlžení ${PART_OF_DAY_LABELS[part]}`}
         >
-          {done && part !== 'nahodne' ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          {state === 'done' && part !== 'nahodne' ? (
+            <Check className="w-4 h-4" />
+          ) : state === 'skipped' ? (
+            <X className="w-4 h-4" />
+          ) : (
+            <Plus className="w-4 h-4" />
+          )}
         </button>
       </div>
     );

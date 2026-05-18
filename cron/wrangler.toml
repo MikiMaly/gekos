@@ -2,10 +2,10 @@ name = "gekos-cron"
 main = "src/index.ts"
 compatibility_date = "2025-01-15"
 
-# Bezí každou hodinu na :00. Handler uvnitř zkontroluje hodinu v Europe/Prague
-# a podle ní vybírá co dělat (mlžení reminders, krmení staleness, svlékání kontroly).
+# Každých 5 minut. Handler uvnitř větví podle Prague-local hour+minute,
+# takže DST přechody nic neposunou (cron je UTC, Prague offset uvnitř).
 [triggers]
-crons = ["0 * * * *"]
+crons = ["*/5 * * * *"]
 
 [[d1_databases]]
 binding = "DB"
@@ -13,5 +13,8 @@ database_name = "gekos"
 database_id = "259436bf-1981-400d-9095-672ce0f429e5"
 migrations_dir = "../migrations"
 
-# Tajné hodnoty se nastaví přes `wrangler secret put BOT_TOKEN`
-# a `wrangler secret put TELEGRAM_CHAT_ID`.
+# Secrets (nastav přes `wrangler secret put`):
+#   BOT_TOKEN                 — Telegram bot token
+#   TELEGRAM_CHAT_ID          — chat_id příjemce
+#   TELEGRAM_WEBHOOK_SECRET   — random string, musí odpovídat secret_token
+#                                v setWebhook (chrání /telegram endpoint)

@@ -15,7 +15,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
   const { results } = await env.DB.prepare(
-    `SELECT id, ts, part_of_day, note
+    `SELECT id, ts, part_of_day, done, note
      FROM misting_events
      ${whereSql}
      ORDER BY ts DESC
@@ -40,14 +40,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ env, request }) => {
   }
 
   const ts = body.ts ?? new Date().toISOString();
+  const done = body.done === false ? 0 : 1;
   const note = body.note?.trim() || null;
 
   const inserted = await env.DB.prepare(
-    `INSERT INTO misting_events (ts, part_of_day, note)
-     VALUES (?, ?, ?)
-     RETURNING id, ts, part_of_day, note`
+    `INSERT INTO misting_events (ts, part_of_day, done, note)
+     VALUES (?, ?, ?, ?)
+     RETURNING id, ts, part_of_day, done, note`
   )
-    .bind(ts, body.part_of_day, note)
+    .bind(ts, body.part_of_day, done, note)
     .first<MistingEvent>();
 
   return Response.json({ event: inserted }, { status: 201 });

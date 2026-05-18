@@ -28,6 +28,7 @@ CREATE TABLE misting_events (
   id           INTEGER PRIMARY KEY,
   ts           TEXT    NOT NULL,
   part_of_day  TEXT    NOT NULL CHECK(part_of_day IN ('rano','vecer','nahodne')),
+  done         INTEGER NOT NULL DEFAULT 1 CHECK(done IN (0,1)),  -- 1 rošeno, 0 nerošeno
   note         TEXT
 );
 CREATE INDEX idx_misting_ts ON misting_events(ts DESC);
