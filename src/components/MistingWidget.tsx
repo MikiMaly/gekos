@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import type { MistingEvent, PartOfDay } from '../lib/types';
 import { api } from '../lib/api';
 import { formatTime, PART_OF_DAY_LABELS } from '../lib/format';
-import { pragueDateString, pragueWallTimeToUtc } from '../lib/time';
+import { pragueLogicalDateString, pragueWallTimeToUtc } from '../lib/time';
 
 interface Props {
   today: {
@@ -33,10 +33,14 @@ export default function MistingWidget({ today, onChange }: Props) {
   const submit = async (part: PartOfDay) => {
     setPending(part);
     try {
+      // Slot časy musí používat logický den (04:00–04:00), shodně s dashboardem
+      // i historií. Po půlnoci (00:00–04:00) je kalendářní den už zítřek, takže
+      // pragueDateString() by zápis posunul mimo dnešní logické okno → "nejde
+      // zaznamenat" rano/vecer. Náhodné si nechává reálný okamžik kliknutí.
       const ts =
         part === 'nahodne'
           ? undefined
-          : pragueWallTimeToUtc(pragueDateString(), SLOT_HOUR[part]).toISOString();
+          : pragueWallTimeToUtc(pragueLogicalDateString(), SLOT_HOUR[part]).toISOString();
       const r = await api.misting.create({ part_of_day: part, ts });
       setLastCreated(r.event);
       onChange();
