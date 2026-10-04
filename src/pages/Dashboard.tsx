@@ -31,7 +31,7 @@ export default function GeckosDashboard() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-[1600px] mx-auto p-6">
         <p className="text-destructive">Chyba: {error}</p>
       </div>
     );
@@ -39,7 +39,7 @@ export default function GeckosDashboard() {
 
   if (!data) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-[1600px] mx-auto p-6">
         <p className="text-muted-foreground">Načítám…</p>
       </div>
     );
@@ -47,8 +47,8 @@ export default function GeckosDashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-5xl mx-auto p-6">
-        <header className="flex items-center justify-between mb-8">
+      <div className="max-w-[1600px] mx-auto p-6">
+        <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link
               to="/private"
@@ -97,11 +97,15 @@ export default function GeckosDashboard() {
           ))}
         </section>
 
-        <section className="mb-8 pb-6 border-b border-border">
-          <CalendarBoard />
-        </section>
-
-        <MistingWidget today={data.misting_today} onChange={load} />
+        {/* Na širokém monitoru vedle sebe: kalendář zabere dva sloupce, mlžení
+            jeden. Pod sebou to bylo přes dvě obrazovky scrollu, i když obojí
+            je úzké a vedle sebe se v klidu vejde. Pod xl se to složí zpátky. */}
+        <div className="grid gap-6 xl:grid-cols-3 items-start">
+          <section className="xl:col-span-2">
+            <CalendarBoard />
+          </section>
+          <MistingWidget today={data.misting_today} onChange={load} />
+        </div>
       </div>
     </div>
   );

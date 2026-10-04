@@ -193,7 +193,7 @@ export default function CalendarBoard() {
               key={cell}
               onClick={() => setSelectedDay(cell)}
               className={
-                'aspect-square p-1 relative rounded-md border text-left flex flex-col text-xs overflow-hidden transition-colors ' +
+                'h-20 p-1 relative rounded-md border text-left flex flex-col text-xs overflow-hidden transition-colors ' +
                 (selected
                   ? 'border-primary bg-primary/10'
                   : 'border-border hover:bg-muted')

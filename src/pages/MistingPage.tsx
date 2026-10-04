@@ -80,7 +80,7 @@ export default function MistingHistory() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-3xl mx-auto p-6">
+      <div className="max-w-[1600px] mx-auto p-6">
         <Link
           to="/private/geckos"
           className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground mb-6"
@@ -124,7 +124,7 @@ export default function MistingHistory() {
         {events.length === 0 ? (
           <p className="text-muted-foreground">Zatím žádné záznamy.</p>
         ) : (
-          <div className="space-y-6">
+          <div className="grid gap-x-6 gap-y-6 md:grid-cols-2 xl:grid-cols-3 items-start">
             {groups.map(([day, evs]) => (
               <section key={day}>
                 <h2 className="flex items-baseline justify-between gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 pb-1 border-b border-border">

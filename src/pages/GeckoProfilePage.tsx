@@ -56,14 +56,14 @@ export default function GeckoProfile() {
     setGecko(r.gecko);
   };
 
-  if (error) return <div className="max-w-3xl mx-auto p-6 text-destructive">Chyba: {error}</div>;
-  if (!gecko) return <div className="max-w-3xl mx-auto p-6 text-muted-foreground">Načítám…</div>;
+  if (error) return <div className="max-w-5xl mx-auto p-6 text-destructive">Chyba: {error}</div>;
+  if (!gecko) return <div className="max-w-5xl mx-auto p-6 text-muted-foreground">Načítám…</div>;
 
   const rescueOn = gecko.rescue_mode === 1;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-3xl mx-auto p-6">
+      <div className="max-w-5xl mx-auto p-6">
         <Link
           to="/private/geckos"
           className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground mb-6"
