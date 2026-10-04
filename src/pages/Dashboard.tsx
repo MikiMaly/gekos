@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Calendar as CalendarIcon, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, StickyNote } from 'lucide-react';
 import { api, type DashboardResponse } from '../lib/api';
 import GeckoCard from '../components/GeckoCard';
 import MistingWidget from '../components/MistingWidget';
@@ -10,6 +10,9 @@ import CalendarBoard from '../components/CalendarBoard';
 export default function GeckosDashboard() {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Poznámky píšu jen párkrát za měsíc, takže panel nedržím na stránce —
+  // v hlavičce je jen malá ikonka, která ho na kliknutí rozbalí.
+  const [notesOpen, setNotesOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -56,13 +59,30 @@ export default function GeckosDashboard() {
             <h1 className="text-3xl font-semibold">🦎 Gekoni</h1>
             <span className="text-sm text-muted-foreground">{data.date_prague}</span>
           </div>
-          <Link
-            to="/private/geckos/calendar"
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-secondary hover:bg-muted text-sm"
+          <button
+            onClick={() => setNotesOpen((o) => !o)}
+            className={
+              'p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted ' +
+              (notesOpen ? 'bg-muted text-foreground' : '')
+            }
+            aria-expanded={notesOpen}
+            aria-label="Poznámka k dnešku"
+            title="Poznámka k dnešku"
           >
-            <CalendarIcon className="w-4 h-4" /> Kalendář
-          </Link>
+            <StickyNote className="w-4 h-4" />
+          </button>
         </header>
+
+        {notesOpen && (
+          <div className="-mt-4 mb-6">
+            <DayNotesPanel
+              date={data.date_prague}
+              geckos={data.geckos.map((g) => g.gecko)}
+              compact
+              defaultOpen
+            />
+          </div>
+        )}
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mb-6">
           {data.geckos.map((g) => (
@@ -77,15 +97,11 @@ export default function GeckosDashboard() {
           ))}
         </section>
 
-        <MistingWidget today={data.misting_today} onChange={load} />
-
-        <div className="mt-6">
-          <DayNotesPanel date={data.date_prague} geckos={data.geckos.map((g) => g.gecko)} compact />
-        </div>
-
-        <section className="mt-8 pt-6 border-t border-border">
+        <section className="mb-8 pb-6 border-b border-border">
           <CalendarBoard />
         </section>
+
+        <MistingWidget today={data.misting_today} onChange={load} />
       </div>
     </div>
   );

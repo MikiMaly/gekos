@@ -8,22 +8,24 @@ interface Props {
   date: string;                 // YYYY-MM-DD logický den
   geckos: Gecko[];              // pro dropdown "týká se"
   compact?: boolean;            // menší titulek (pro detail kalendáře)
+  defaultOpen?: boolean;        // rozbalit i když den žádné poznámky nemá
 }
 
-export default function DayNotesPanel({ date, geckos, compact }: Props) {
+export default function DayNotesPanel({ date, geckos, compact, defaultOpen }: Props) {
   const [notes, setNotes] = useState<DayNote[]>([]);
   const [text, setText] = useState('');
   const [geckoId, setGeckoId] = useState<string>('');   // '' = obecná
   const [busy, setBusy] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!defaultOpen);
 
   const load = useCallback(async () => {
     const r = await api.dayNotes.list({ date });
     setNotes(r.notes);
     // Den bez poznámek nechávám sbalený na jednu řádku — poznámky píšu jen
     // občas a rozbalený formulář by jinak zabíral místo na dashboardu zbytečně.
-    setOpen(r.notes.length > 0);
-  }, [date]);
+    // Když panel někdo otevřel cíleně (defaultOpen), rozbalený zůstane vždy.
+    setOpen(!!defaultOpen || r.notes.length > 0);
+  }, [date, defaultOpen]);
 
   useEffect(() => { load(); }, [load]);
 
