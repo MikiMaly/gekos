@@ -148,27 +148,21 @@ export default function MistingWidget({ today, onChange }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 relative">
-      <header className="flex items-center justify-between gap-2 mb-3">
+    <div className="rounded-2xl border border-border bg-card p-5 relative">
+      <header className="mb-3">
         <Link
           to="/private/geckos/misting"
           className="flex items-center gap-2 group"
         >
-          <Cloud className="w-5 h-5 text-blue-500" />
-          <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
+          <Cloud className="w-5 h-5 text-blue-500 shrink-0" />
+          <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
             Mlžení terária
           </h3>
-          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-        </Link>
-        <Link
-          to="/private/geckos/misting"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Historie →
+          <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
         </Link>
       </header>
 
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+      <p className="flex items-start gap-1.5 text-[11px] leading-snug text-muted-foreground mb-3">
         <Bot className="w-3.5 h-3.5 shrink-0" />
         Rosič jede každých {AUTO_MISTER.intervalHours} h po {AUTO_MISTER.durationSec} s
         ({AUTO_MISTER.cycleHoursPrague.map((h) => `${h}:00`).join(' · ')}). Ruční kapku

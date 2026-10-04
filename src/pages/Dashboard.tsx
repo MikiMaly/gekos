@@ -97,11 +97,15 @@ export default function GeckosDashboard() {
           ))}
         </section>
 
-        {/* Na širokém monitoru vedle sebe: kalendář zabere dva sloupce, mlžení
-            jeden. Pod sebou to bylo přes dvě obrazovky scrollu, i když obojí
-            je úzké a vedle sebe se v klidu vejde. Pod xl se to složí zpátky. */}
-        <div className="grid gap-6 xl:grid-cols-3 items-start">
-          <section className="xl:col-span-2">
+        {/* Na širokém monitoru vedle sebe: kalendář bere čtyři pětiny, mlžení
+            zbytek. Pod sebou to bylo přes dvě obrazovky scrollu, i když obojí
+            se vedle sebe v klidu vejde. Pod xl se to složí zpátky.
+
+            Kalendářový sloupec má strop na výšku okna a scrolluje sám v sobě.
+            Bez toho rozklik dne (detail + poznámky) natáhl celou stránku a
+            muselo se scrollovat znovu od začátku. */}
+        <div className="grid gap-6 xl:grid-cols-5 items-start">
+          <section className="xl:col-span-4 xl:max-h-[calc(100vh-13rem)] xl:overflow-y-auto xl:pr-2">
             <CalendarBoard />
           </section>
           <MistingWidget today={data.misting_today} onChange={load} />

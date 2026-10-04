@@ -86,15 +86,15 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
     Date.now() - new Date(lastShedding.ts).getTime() >= 24 * 60 * 60 * 1000;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 flex flex-col gap-3 relative">
+    <div className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-2 relative">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <span
-            className="w-10 h-10 rounded-full border-2 border-border shrink-0"
+            className="w-8 h-8 rounded-full border-2 border-border shrink-0"
             style={{ background: gecko.color_hex ?? '#ccc' }}
             aria-hidden
           />
-          <h3 className="text-xl font-semibold truncate">{gecko.name}</h3>
+          <h3 className="text-lg font-semibold truncate">{gecko.name}</h3>
           {rescueOn && (
             <span
               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/15 text-red-600 text-xs shrink-0"
@@ -121,7 +121,7 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
 
           return (
             <li key={cat} className="border-b border-border/40 last:border-0">
-              <div className="flex items-center justify-between gap-2 py-2">
+              <div className="flex items-center justify-between gap-2 py-1.5">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
                   <span className="font-medium">{CATEGORY_LABELS[cat]}</span>
@@ -140,14 +140,14 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
                   <button
                     onClick={() => submit(cat)}
                     disabled={pending === cat}
-                    className="w-9 h-9 rounded-md bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-50 flex items-center justify-center"
+                    className="w-8 h-8 rounded-md bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-50 flex items-center justify-center"
                     aria-label={`Zapsat ${CATEGORY_LABELS[cat]}`}
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setExpanded(isOpen ? null : cat)}
-                    className="w-7 h-9 rounded-md text-muted-foreground hover:text-foreground flex items-center justify-center"
+                    className="w-6 h-8 rounded-md text-muted-foreground hover:text-foreground flex items-center justify-center"
                     aria-label="Detail"
                   >
                     {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -186,7 +186,7 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
         })}
       </ul>
 
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40 text-xs">
+      <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40 text-xs">
         <div className="flex items-center gap-2 min-w-0">
           <Sparkles className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span className="text-muted-foreground">
