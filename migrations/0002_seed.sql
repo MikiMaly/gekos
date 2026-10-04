@@ -2,5 +2,5 @@
 
 INSERT OR IGNORE INTO geckos (slug, name, color_hex) VALUES
   ('bily',   'Bílý',   '#F5F0E1'),
-  ('bezovy', 'Béžový', '#CFA876'),
+  ('bezovy', 'Skalár Mrouskavý', '#CFA876'),
   ('hnedy',  'Hnědý',  '#8C6239');
