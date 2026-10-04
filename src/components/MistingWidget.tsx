@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Cloud, Sun, Moon, Sparkles, Check, X, Plus, Undo2, ArrowRight, Bot } from 'lucide-react';
+import { Cloud, Sun, Moon, Sparkles, Check, X, Plus, Minus, Undo2, ArrowRight, Bot } from 'lucide-react';
 import { Link } from 'react-router';
 import type { MistingEvent, PartOfDay } from '../lib/types';
 import { AUTO_MISTER } from '../lib/types';
@@ -110,27 +110,39 @@ export default function MistingWidget({ today, onChange }: Props) {
           )}
           <span className="text-xs text-muted-foreground truncate">{subtitle}</span>
         </div>
-        <button
-          onClick={() => submit(part)}
-          disabled={pending === part}
-          className={
-            'w-9 h-9 rounded-md flex items-center justify-center disabled:opacity-50 ' +
-            (state === 'done'
-              ? 'bg-blue-500/15 text-blue-600 hover:bg-blue-500/25'
-              : state === 'skipped'
-              ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25'
-              : 'bg-primary/10 text-primary hover:bg-primary/20')
-          }
-          aria-label={`Zaznamenat mlžení ${PART_OF_DAY_LABELS[part]}`}
-        >
-          {state === 'done' && part !== 'nahodne' ? (
-            <Check className="w-4 h-4" />
-          ) : state === 'skipped' ? (
-            <X className="w-4 h-4" />
-          ) : (
+        {/* Rano a vecer obsluhuje rosič, ruční kapky zapisuju jako náhodné,
+            takže tlačítko má jen ten řádek. Slotové řádky zůstávají jako stav
+            — vedle sebe pak vidím, co stroj udělal a co jsem přidal sám. */}
+        {part === 'nahodne' ? (
+          <button
+            onClick={() => submit(part)}
+            disabled={pending === part}
+            className="w-9 h-9 rounded-md flex items-center justify-center disabled:opacity-50 bg-primary/10 text-primary hover:bg-primary/20"
+            aria-label={`Zaznamenat mlžení ${PART_OF_DAY_LABELS[part]}`}
+          >
             <Plus className="w-4 h-4" />
-          )}
-        </button>
+          </button>
+        ) : (
+          <span
+            className={
+              'w-9 h-9 rounded-md flex items-center justify-center shrink-0 ' +
+              (state === 'done'
+                ? 'text-blue-600'
+                : state === 'skipped'
+                ? 'text-red-600'
+                : 'text-muted-foreground/40')
+            }
+            aria-hidden
+          >
+            {state === 'done' ? (
+              <Check className="w-4 h-4" />
+            ) : state === 'skipped' ? (
+              <X className="w-4 h-4" />
+            ) : (
+              <Minus className="w-4 h-4" />
+            )}
+          </span>
+        )}
       </div>
     );
   };
@@ -159,8 +171,8 @@ export default function MistingWidget({ today, onChange }: Props) {
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
         <Bot className="w-3.5 h-3.5 shrink-0" />
         Rosič jede každých {AUTO_MISTER.intervalHours} h po {AUTO_MISTER.durationSec} s
-        ({AUTO_MISTER.cycleHoursPrague.map((h) => `${h}:00`).join(' · ')}). Klik níž zapíše
-        ruční mlžení navíc.
+        ({AUTO_MISTER.cycleHoursPrague.map((h) => `${h}:00`).join(' · ')}). Ruční kapku
+        navíc zapiš jako náhodnou.
       </p>
 
       <div className="flex flex-col">

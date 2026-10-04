@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { StickyNote, Plus, Trash2 } from 'lucide-react';
+import { StickyNote, Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import type { DayNote, Gecko } from '../lib/types';
 import { api } from '../lib/api';
 import { formatTime } from '../lib/format';
@@ -15,10 +15,14 @@ export default function DayNotesPanel({ date, geckos, compact }: Props) {
   const [text, setText] = useState('');
   const [geckoId, setGeckoId] = useState<string>('');   // '' = obecná
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const load = useCallback(async () => {
     const r = await api.dayNotes.list({ date });
     setNotes(r.notes);
+    // Den bez poznámek nechávám sbalený na jednu řádku — poznámky píšu jen
+    // občas a rozbalený formulář by jinak zabíral místo na dashboardu zbytečně.
+    setOpen(r.notes.length > 0);
   }, [date]);
 
   useEffect(() => { load(); }, [load]);
@@ -53,17 +57,31 @@ export default function DayNotesPanel({ date, geckos, compact }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <header className="flex items-center gap-2 mb-3">
-        <StickyNote className="w-5 h-5 text-amber-500" />
-        <h3 className={compact ? 'font-semibold' : 'text-lg font-semibold'}>
+    <div className="rounded-2xl border border-border bg-card px-4 py-3">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 w-full text-left"
+        aria-expanded={open}
+      >
+        {open ? (
+          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+        )}
+        <StickyNote className="w-4 h-4 text-amber-500 shrink-0" />
+        <span className={compact ? 'text-sm font-medium' : 'font-semibold'}>
           Poznámka {compact ? '' : 'k dnešku'}
-        </h3>
-        <span className="text-xs text-muted-foreground tabular-nums">{date}</span>
-      </header>
+        </span>
+        {notes.length > 0 && (
+          <span className="text-xs px-1.5 py-0.5 rounded bg-secondary tabular-nums">
+            {notes.length}
+          </span>
+        )}
+        <span className="text-xs text-muted-foreground tabular-nums ml-auto">{date}</span>
+      </button>
 
-      {notes.length > 0 && (
-        <ul className="space-y-1.5 mb-3">
+      {open && notes.length > 0 && (
+        <ul className="space-y-1.5 mt-3 mb-3">
           {notes.map((n) => {
             const g = n.gecko_id != null ? geckoById[n.gecko_id] : null;
             return (
@@ -101,7 +119,8 @@ export default function DayNotesPanel({ date, geckos, compact }: Props) {
         </ul>
       )}
 
-      <div className="flex flex-wrap gap-2 items-stretch">
+      {open && (
+      <div className="flex flex-wrap gap-2 items-stretch mt-3">
         <input
           type="text"
           value={text}
@@ -134,6 +153,7 @@ export default function DayNotesPanel({ date, geckos, compact }: Props) {
           <Plus className="w-4 h-4" /> Přidat
         </button>
       </div>
+      )}
     </div>
   );
 }

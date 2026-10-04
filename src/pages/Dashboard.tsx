@@ -5,6 +5,7 @@ import { api, type DashboardResponse } from '../lib/api';
 import GeckoCard from '../components/GeckoCard';
 import MistingWidget from '../components/MistingWidget';
 import DayNotesPanel from '../components/DayNotesPanel';
+import CalendarBoard from '../components/CalendarBoard';
 
 export default function GeckosDashboard() {
   const [data, setData] = useState<DashboardResponse | null>(null);
@@ -79,8 +80,12 @@ export default function GeckosDashboard() {
         <MistingWidget today={data.misting_today} onChange={load} />
 
         <div className="mt-6">
-          <DayNotesPanel date={data.date_prague} geckos={data.geckos.map((g) => g.gecko)} />
+          <DayNotesPanel date={data.date_prague} geckos={data.geckos.map((g) => g.gecko)} compact />
         </div>
+
+        <section className="mt-8 pt-6 border-t border-border">
+          <CalendarBoard />
+        </section>
       </div>
     </div>
   );
