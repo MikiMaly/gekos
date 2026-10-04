@@ -3,7 +3,10 @@
 Web app pro správu péče o pagekony řasnaté — sub-app [`MikiMaly/hub`](https://github.com/MikiMaly/hub).
 
 **Stack**: Cloudflare Pages Functions + D1 (SQLite) + React + TypeScript.
-**Auth**: zděděná z hubu (`functions/_middleware.js` chrání `/private/*`).
+**Auth**: zděděná z hubu. Hubovský `functions/_middleware.js` chrání `/private/*` stránky
+i celé `/api/geckos/*` — bez platné session vrací 403 JSON. Endpointy tady proto vlastní
+kontrolu nemají a **nesmí se nasazovat samostatně na veřejnou adresu**; při lokálním
+`npm run dev` běží bez middlewaru, a tedy bez ověření.
 **Deploy**: integrováno do hubu jako git submodule; push do hubu = jeden Cloudflare Pages build.
 
 ## Co tracking obsahuje
