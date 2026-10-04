@@ -8,6 +8,31 @@ interface Env {
 const TZ = 'Europe/Prague';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+// ─────────────── automatický rosič ────────────────────────────────────────
+// Od tohohle dne visí v teráriu rosič na časovači: rosí každých 8 hodin po
+// 45 sekundách. Dvě důsledky pro cron:
+//   1. cyklus si zapíše sám do historie (logAutoMisting)
+//   2. přestane se ptát "mlžil jsi ráno/večer?" — nemá koho, dělá to stroj
+// POZOR: zápis je podle časovače, ne měření. Rosič cronu nic nereportuje,
+// takže řádek znamená "cyklus měl proběhnout", ne "proběhl". Když rosič
+// vypadne (voda, elektrika), historie to nepozná — kontrola zůstává na mně.
+// Duplikát AUTO_MISTER z functions/_lib/types.ts — cron je samostatný worker
+// s vlastním bundlem, takže si konstanty drží u sebe. Měníš tady → měň i tam.
+const AUTO_MISTER_SINCE = '2026-06-01';
+const AUTO_MISTER_DURATION_SEC = 45;
+
+// Prague wall-time hodina cyklu → slot v historii. Prostřední cyklus vlastní
+// slot nemá, padá do 'nahodne'.
+const AUTO_MISTER_CYCLES: Record<number, 'rano' | 'vecer' | 'nahodne' | undefined> = {
+  6: 'rano',
+  14: 'nahodne',
+  22: 'vecer',
+};
+
+function autoMisterActive(ymd: string): boolean {
+  return ymd >= AUTO_MISTER_SINCE;
+}
+
 // ─────────────── time helpers ─────────────────────────────────────────────
 
 interface PragueNow {
@@ -143,6 +168,26 @@ async function feedingStaleness(env: Env): Promise<Array<{ gecko: GeckoRow; days
   return out;
 }
 
+async function logAutoMisting(
+  env: Env,
+  ymd: string,
+  hour: number,
+  part: 'rano' | 'vecer' | 'nahodne'
+): Promise<void> {
+  const ts = pragueWallTimeToUtc(ymd, hour).toISOString();
+  // OR IGNORE + partial unique index idx_misting_auto_unique (migrace 0007):
+  // opakovaný běh téhle minuty ani překryv s backfillem 0008 nic nezduplikuje.
+  const res = await env.DB.prepare(
+    `INSERT OR IGNORE INTO misting_events (ts, part_of_day, done, source, duration_sec, note)
+     VALUES (?, ?, 1, 'auto', ?, NULL)`
+  )
+    .bind(ts, part, AUTO_MISTER_DURATION_SEC)
+    .run();
+  if ((res.meta.changes ?? 0) > 0) {
+    console.log(`auto misting logged: ${ymd} ${hour}:00 → ${part}`);
+  }
+}
+
 // ─────────────── notification kinds ───────────────────────────────────────
 
 async function preReminderMorning(env: Env, ymd: string): Promise<void> {
@@ -249,7 +294,8 @@ async function handleMistingCallback(env: Env, cb: TelegramCallbackQuery): Promi
   const ts = pragueWallTimeToUtc(dateStr, hour).toISOString();
 
   await env.DB.prepare(
-    `INSERT INTO misting_events (ts, part_of_day, done, note) VALUES (?, ?, ?, ?)`
+    `INSERT INTO misting_events (ts, part_of_day, done, source, duration_sec, note)
+     VALUES (?, ?, ?, 'manual', NULL, ?)`
   )
     .bind(ts, partOfDay, done, null)
     .run();
@@ -267,17 +313,27 @@ async function handleMistingCallback(env: Env, cb: TelegramCallbackQuery): Promi
 // ─────────────── scheduled dispatcher ─────────────────────────────────────
 
 async function runForTime(env: Env, ymd: string, hour: number, minute: number): Promise<void> {
+  const auto = autoMisterActive(ymd);
+
   if (minute === 0) {
     await checkSheddingFollowups(env);
     if (hour === 11 || hour === 21) await checkFeedingStaleness(env, ymd);
+    // Cykly rosiče: 06:00 / 14:00 / 22:00 Praha.
+    if (auto) {
+      const part = AUTO_MISTER_CYCLES[hour];
+      if (part) await logAutoMisting(env, ymd, hour, part);
+    }
   }
-  if (minute === 5) {
-    if (hour === 9) await mistingCheckMorning(env, ymd);
-    if (hour === 22) await mistingCheckEvening(env, ymd);
-  }
-  if (minute === 45) {
-    if (hour === 8) await preReminderMorning(env, ymd);
-    if (hour === 21) await preReminderEvening(env, ymd);
+  // Dotazy a předupozornění na mlžení dávají smysl jen dokud rosím ručně.
+  if (!auto) {
+    if (minute === 5) {
+      if (hour === 9) await mistingCheckMorning(env, ymd);
+      if (hour === 22) await mistingCheckEvening(env, ymd);
+    }
+    if (minute === 45) {
+      if (hour === 8) await preReminderMorning(env, ymd);
+      if (hour === 21) await preReminderEvening(env, ymd);
+    }
   }
 }
 

@@ -77,3 +77,17 @@ export const PART_OF_DAY_LABELS = {
   vecer: 'Večer',
   nahodne: 'Náhodně',
 } as const;
+
+export const MISTING_SOURCE_LABELS = {
+  manual: 'ručně',
+  auto: 'rosič',
+} as const;
+
+// "45 s" / "1:30" — délka cyklu rosiče. Ruční zápisy délku nemají.
+export function formatDuration(sec: number | null): string | null {
+  if (sec === null || sec <= 0) return null;
+  if (sec < 60) return `${sec} s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return s === 0 ? `${m} min` : `${m}:${String(s).padStart(2, '0')}`;
+}

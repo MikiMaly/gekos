@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Bot, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { CareCategory, CareEvent, Gecko, MistingEvent } from '../lib/types';
 import { api } from '../lib/api';
-import { CATEGORY_LABELS, PART_OF_DAY_LABELS, formatTime } from '../lib/format';
+import { CATEGORY_LABELS, PART_OF_DAY_LABELS, formatDuration, formatTime } from '../lib/format';
 import { pragueLogicalDateString, pragueMonthRange } from '../lib/time';
 import DayNotesPanel from '../components/DayNotesPanel';
 
@@ -353,15 +353,29 @@ function DayDetail({
           </div>
         );
       })}
-      {mistingEvents.map((ev) => (
-        <div key={`m-${ev.id}`} className="flex items-center gap-2">
-          <span className="w-5 h-5 flex items-center justify-center text-blue-500">💧</span>
-          <span className="font-medium">Mlžení</span>
-          <span className="text-muted-foreground">·</span>
-          <span>{PART_OF_DAY_LABELS[ev.part_of_day]}</span>
-          <span className="text-muted-foreground ml-auto tabular-nums">{formatTime(ev.ts)}</span>
-        </div>
-      ))}
+      {mistingEvents.map((ev) => {
+        const byMister = ev.source === 'auto';
+        const duration = formatDuration(ev.duration_sec);
+        return (
+          <div key={`m-${ev.id}`} className="flex items-center gap-2">
+            <span className="w-5 h-5 flex items-center justify-center text-blue-500">💧</span>
+            <span className="font-medium">Mlžení</span>
+            <span className="text-muted-foreground">·</span>
+            <span>{PART_OF_DAY_LABELS[ev.part_of_day]}</span>
+            {byMister && (
+              <span
+                className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-secondary text-muted-foreground"
+                title="zapsal automatický rosič"
+              >
+                <Bot className="w-3 h-3" />
+                rosič
+                {duration && <span className="tabular-nums">· {duration}</span>}
+              </span>
+            )}
+            <span className="text-muted-foreground ml-auto tabular-nums">{formatTime(ev.ts)}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }

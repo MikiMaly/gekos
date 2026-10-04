@@ -1,5 +1,12 @@
 import type { Env } from '../../_lib/env';
-import type { CareCategory, CareEvent, Gecko, MistingEvent, SheddingEvent } from '../../_lib/types';
+import type {
+  CareCategory,
+  CareEvent,
+  Gecko,
+  MistingEvent,
+  MistingSource,
+  SheddingEvent,
+} from '../../_lib/types';
 import { pragueLogicalDateString, pragueLogicalTodayRange } from '../../_lib/time';
 
 const CATEGORIES: CareCategory[] = ['cvrcci', 'banan', 'antib', 'mast'];
@@ -11,13 +18,19 @@ interface DashboardGecko {
   last_shedding: SheddingEvent | null;
 }
 
+interface MistingSlot {
+  latest_ts: string | null;
+  latest_done: 0 | 1 | null;
+  latest_source: MistingSource | null;
+}
+
 interface DashboardResponse {
   date_prague: string;
   geckos: DashboardGecko[];
   misting_today: {
-    rano: { latest_ts: string | null; latest_done: 0 | 1 | null };
-    vecer: { latest_ts: string | null; latest_done: 0 | 1 | null };
-    nahodne: { count: number; latest_ts: string | null };
+    rano: MistingSlot;
+    vecer: MistingSlot;
+    nahodne: { count: number; latest_ts: string | null; latest_source: MistingSource | null };
   };
 }
 
@@ -45,7 +58,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
        WHERE rn = 1`
     ),
     env.DB.prepare(
-      `SELECT id, ts, part_of_day, done, note
+      `SELECT id, ts, part_of_day, done, source, duration_sec, note
        FROM misting_events
        WHERE ts >= ? AND ts < ?
        ORDER BY ts DESC, id DESC`
@@ -81,9 +94,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
   });
 
   const misting_today: DashboardResponse['misting_today'] = {
-    rano: { latest_ts: null, latest_done: null },
-    vecer: { latest_ts: null, latest_done: null },
-    nahodne: { count: 0, latest_ts: null },
+    rano: { latest_ts: null, latest_done: null, latest_source: null },
+    vecer: { latest_ts: null, latest_done: null, latest_source: null },
+    nahodne: { count: 0, latest_ts: null, latest_source: null },
   };
   // mistingToday je už seřazený ts DESC, id DESC — první zápis pro každý
   // slot je ten nejnovější. Pro náhodné jen počítám.
@@ -91,13 +104,17 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     if (m.part_of_day === 'nahodne') {
       if (m.done === 1) {
         misting_today.nahodne.count += 1;
-        if (misting_today.nahodne.latest_ts === null) misting_today.nahodne.latest_ts = m.ts;
+        if (misting_today.nahodne.latest_ts === null) {
+          misting_today.nahodne.latest_ts = m.ts;
+          misting_today.nahodne.latest_source = m.source;
+        }
       }
     } else {
       const slot = misting_today[m.part_of_day];
       if (slot.latest_ts === null) {
         slot.latest_ts = m.ts;
         slot.latest_done = m.done;
+        slot.latest_source = m.source;
       }
     }
   }

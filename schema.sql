@@ -29,9 +29,12 @@ CREATE TABLE misting_events (
   ts           TEXT    NOT NULL,
   part_of_day  TEXT    NOT NULL CHECK(part_of_day IN ('rano','vecer','nahodne')),
   done         INTEGER NOT NULL DEFAULT 1 CHECK(done IN (0,1)),  -- 1 rošeno, 0 nerošeno
+  source       TEXT    NOT NULL DEFAULT 'manual' CHECK(source IN ('manual','auto')),
+  duration_sec INTEGER,                                          -- auto rosič = 45 s, ruční = NULL
   note         TEXT
 );
-CREATE INDEX idx_misting_ts ON misting_events(ts DESC);
+CREATE INDEX idx_misting_ts        ON misting_events(ts DESC);
+CREATE INDEX idx_misting_source_ts ON misting_events(source, ts DESC);
 
 CREATE TABLE shedding_events (
   id              INTEGER PRIMARY KEY,

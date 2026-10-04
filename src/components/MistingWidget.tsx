@@ -1,17 +1,15 @@
 import { useState } from 'react';
-import { Cloud, Sun, Moon, Sparkles, Check, X, Plus, Undo2, ArrowRight } from 'lucide-react';
+import { Cloud, Sun, Moon, Sparkles, Check, X, Plus, Undo2, ArrowRight, Bot } from 'lucide-react';
 import { Link } from 'react-router';
 import type { MistingEvent, PartOfDay } from '../lib/types';
+import { AUTO_MISTER } from '../lib/types';
+import type { DashboardResponse } from '../lib/api';
 import { api } from '../lib/api';
 import { formatTime, PART_OF_DAY_LABELS } from '../lib/format';
 import { pragueLogicalDateString, pragueWallTimeToUtc } from '../lib/time';
 
 interface Props {
-  today: {
-    rano: { latest_ts: string | null; latest_done: 0 | 1 | null };
-    vecer: { latest_ts: string | null; latest_done: 0 | 1 | null };
-    nahodne: { count: number; latest_ts: string | null };
-  };
+  today: DashboardResponse['misting_today'];
   onChange: () => void;
 }
 
@@ -65,9 +63,12 @@ export default function MistingWidget({ today, onChange }: Props) {
     let ts: string | null;
     let subtitle: string;
 
+    let byMister = false;
+
     if (part === 'nahodne') {
       state = today.nahodne.count > 0 ? 'done' : 'pending';
       ts = today.nahodne.latest_ts;
+      byMister = today.nahodne.latest_source === 'auto';
       subtitle =
         today.nahodne.count > 0
           ? `${today.nahodne.count}× dnes${ts ? ` · ${formatTime(ts)}` : ''}`
@@ -78,9 +79,10 @@ export default function MistingWidget({ today, onChange }: Props) {
       else if (slot.latest_done === 0) state = 'skipped';
       else state = 'pending';
       ts = slot.latest_ts;
+      byMister = slot.latest_source === 'auto';
       subtitle =
         state === 'done'
-          ? `✓ rošeno · ${ts ? formatTime(ts) : ''}`
+          ? `${byMister ? 'rosič' : '✓ rošeno'} · ${ts ? formatTime(ts) : ''}`
           : state === 'skipped'
           ? `✗ nerošeno · ${ts ? formatTime(ts) : ''}`
           : 'zatím dnes ne';
@@ -103,6 +105,9 @@ export default function MistingWidget({ today, onChange }: Props) {
             }
           />
           <span className="font-medium">{PART_OF_DAY_LABELS[part]}</span>
+          {byMister && (
+            <Bot className="w-3.5 h-3.5 text-muted-foreground shrink-0" aria-label="zapsal rosič" />
+          )}
           <span className="text-xs text-muted-foreground truncate">{subtitle}</span>
         </div>
         <button
@@ -150,6 +155,13 @@ export default function MistingWidget({ today, onChange }: Props) {
           Historie →
         </Link>
       </header>
+
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+        <Bot className="w-3.5 h-3.5 shrink-0" />
+        Rosič jede každých {AUTO_MISTER.intervalHours} h po {AUTO_MISTER.durationSec} s
+        ({AUTO_MISTER.cycleHoursPrague.map((h) => `${h}:00`).join(' · ')}). Klik níž zapíše
+        ruční mlžení navíc.
+      </p>
 
       <div className="flex flex-col">
         {(['rano', 'vecer', 'nahodne'] as PartOfDay[]).map(row)}

@@ -4,6 +4,21 @@ export type CareCategory = 'cvrcci' | 'banan' | 'antib' | 'mast';
 
 export type PartOfDay = 'rano' | 'vecer' | 'nahodne';
 
+// 'manual' = naklikané v appce nebo odkliknuté z Telegramu
+// 'auto'   = zápis automatického rosiče (viz AUTO_MISTER_* v cron/src/index.ts)
+export type MistingSource = 'manual' | 'auto';
+
+// Automatický rosič na časovači. Jediná runtime hodnota v tomhle modulu —
+// potřebuje ji UI (odznak ve widgetu, filtr v historii) i Functions.
+// POZOR: cron worker má vlastní kopii (AUTO_MISTER_* v cron/src/index.ts),
+// protože se deployuje zvlášť a nesdílí bundle. Měníš tady → měň i tam.
+export const AUTO_MISTER = {
+  since: '2026-06-01',        // první den, kdy rosič visel v teráriu
+  intervalHours: 8,
+  durationSec: 45,
+  cycleHoursPrague: [6, 14, 22],  // 06:00 → rano, 14:00 → nahodne, 22:00 → vecer
+} as const;
+
 export interface Gecko {
   id: number;
   slug: GeckoSlug;
@@ -30,6 +45,8 @@ export interface MistingEvent {
   ts: string;
   part_of_day: PartOfDay;
   done: 0 | 1;
+  source: MistingSource;
+  duration_sec: number | null;   // délka cyklu rosiče; NULL u ručních zápisů
   note: string | null;
 }
 
@@ -51,7 +68,9 @@ export interface CreateCareEventInput {
 
 export interface CreateMistingInput {
   part_of_day: PartOfDay;
-  done?: boolean;       // default true (rošeno); false = nerošeno
+  done?: boolean;             // default true (rošeno); false = nerošeno
+  source?: MistingSource;     // default 'manual'
+  duration_sec?: number;      // délka cyklu v sekundách (rosič posílá 45)
   note?: string;
   ts?: string;
 }

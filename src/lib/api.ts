@@ -9,6 +9,7 @@ import type {
   Gecko,
   GeckoSlug,
   MistingEvent,
+  MistingSource,
   SheddingEvent,
 } from './types';
 
@@ -75,10 +76,11 @@ export const api = {
     },
   },
   misting: {
-    list: (params?: { from?: string; to?: string }) => {
+    list: (params?: { from?: string; to?: string; source?: MistingSource }) => {
       const qs = new URLSearchParams();
       if (params?.from) qs.set('from', params.from);
       if (params?.to) qs.set('to', params.to);
+      if (params?.source) qs.set('source', params.source);
       const q = qs.toString();
       return req<{ events: MistingEvent[] }>(`/misting${q ? `?${q}` : ''}`);
     },
@@ -118,12 +120,18 @@ export interface DashboardGecko {
   last_shedding: SheddingEvent | null;
 }
 
+export interface MistingSlot {
+  latest_ts: string | null;
+  latest_done: 0 | 1 | null;
+  latest_source: MistingSource | null;
+}
+
 export interface DashboardResponse {
   date_prague: string;
   geckos: DashboardGecko[];
   misting_today: {
-    rano: { latest_ts: string | null; latest_done: 0 | 1 | null };
-    vecer: { latest_ts: string | null; latest_done: 0 | 1 | null };
-    nahodne: { count: number; latest_ts: string | null };
+    rano: MistingSlot;
+    vecer: MistingSlot;
+    nahodne: { count: number; latest_ts: string | null; latest_source: MistingSource | null };
   };
 }

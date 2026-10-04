@@ -10,9 +10,27 @@ Web app pro správu péče o pagekony řasnaté — sub-app [`MikiMaly/hub`](htt
 
 - 3 gekoni rozlišení barvou: `bily`, `bezovy`, `hnedy`
 - 4 kategorie péče per gekon: `cvrcci`, `banan`, `antib` (antibiotika), `mast`
-- Mlžení terária — `rano` / `vecer` (teráriové, ne per-gekon)
+- Mlžení terária — `rano` / `vecer` / `nahodne` (teráriové, ne per-gekon)
 - Historie + kalendář
 - TZ: Europe/Prague
+
+### Automatický rosič (od 1. 6. 2026)
+
+V teráriu visí rosič na časovači: rosí každých 8 h po 45 s, tedy v 06:00 /
+14:00 / 22:00 (Praha). Dopad na appku:
+
+- `misting_events.source` rozlišuje `'manual'` (klik v appce / odpověď
+  v Telegramu) od `'auto'` (rosič); `duration_sec` drží délku cyklu
+- cron worker si cykly zapisuje sám v minutě 0 dané hodiny a **přestal se ptát**
+  "mlžil jsi ráno/večer?" — konstanty `AUTO_MISTER_*` v `cron/src/index.ts`,
+  kopie pro UI v `functions/_lib/types.ts` (`AUTO_MISTER`)
+- historie za 1. 6. – 4. 10. 2026 je dosypaná migrací `0008`; od 5. 10. zapisuje cron
+- prostřední cyklus (14:00) nemá vlastní slot, padá do `nahodne`
+- **auto zápis = časovač, ne měření.** Rosič cronu nic nereportuje, takže řádek
+  znamená "cyklus měl proběhnout". Výpadek vody nebo elektriky historie nepozná.
+
+Ruční mlžení jde zapsat pořád — klik ve widgetu přidá `manual` záznam navíc
+a na dashboardu ve svém slotu vyhraje (slot se bere podle nejnovějšího `ts`).
 
 ## Layout
 
