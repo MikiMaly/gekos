@@ -86,18 +86,18 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
     Date.now() - new Date(lastShedding.ts).getTime() >= 24 * 60 * 60 * 1000;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-2 relative">
+    <div className="hub-card p-4 sm:p-5 flex flex-col gap-2">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <span
-            className="w-8 h-8 rounded-full border-2 border-border shrink-0"
+            className="w-9 h-9 rounded-full border-2 border-border-strong shrink-0 shadow-[inset_0_-3px_6px_rgba(0,0,0,0.25)]"
             style={{ background: gecko.color_hex ?? '#ccc' }}
             aria-hidden
           />
-          <h3 className="text-lg font-semibold truncate">{gecko.name}</h3>
+          <h3 className="hub-title text-xl truncate">{gecko.name}</h3>
           {rescueOn && (
             <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/15 text-red-600 text-xs shrink-0"
+              className="hub-pill hub-pill-danger shrink-0"
               title="Rescue mód aktivní — zobrazuje se antib a mast"
             >
               <Stethoscope className="w-3 h-3" /> rescue
@@ -106,7 +106,7 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
         </div>
         <Link
           to={`/private/geckos/${gecko.slug}`}
-          className="text-sm text-muted-foreground hover:text-foreground shrink-0"
+          className="text-sm text-muted-foreground hover:text-mint transition-colors shrink-0"
         >
           Profil →
         </Link>
@@ -120,13 +120,13 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
           const isOpen = expanded === cat;
 
           return (
-            <li key={cat} className="border-b border-border/40 last:border-0">
+            <li key={cat} className="border-b border-border last:border-0">
               <div className="flex items-center justify-between gap-2 py-1.5">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <Icon className="w-4 h-4 text-mint/70 shrink-0" />
                   <span className="font-medium">{CATEGORY_LABELS[cat]}</span>
                   {today.count_events > 0 && (
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/15 text-green-600 tabular-nums">
+                    <span className="hub-pill hub-pill-ok tabular-nums">
                       {today.count_events}× dnes
                       {today.total !== today.count_events && ` (${today.total} ks)`}
                       {today.latest_ts && ` · ${formatTime(today.latest_ts)}`}
@@ -140,14 +140,14 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
                   <button
                     onClick={() => submit(cat)}
                     disabled={pending === cat}
-                    className="w-8 h-8 rounded-md bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-50 flex items-center justify-center"
+                    className="hub-btn hub-btn-soft hub-btn-icon !min-h-9 !w-9"
                     aria-label={`Zapsat ${CATEGORY_LABELS[cat]}`}
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setExpanded(isOpen ? null : cat)}
-                    className="w-6 h-8 rounded-md text-muted-foreground hover:text-foreground flex items-center justify-center"
+                    className="w-7 h-9 rounded-lg text-muted-foreground hover:text-mint flex items-center justify-center"
                     aria-label="Detail"
                   >
                     {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -162,7 +162,7 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
                     min={1}
                     value={count}
                     onChange={(e) => setCount(e.target.value)}
-                    className="w-16 px-2 py-1.5 rounded border border-border bg-background text-sm"
+                    className="hub-input !w-20 !min-h-9 tabular-nums"
                   />
                   <span className="text-sm text-muted-foreground">ks</span>
                   <input
@@ -170,12 +170,12 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
                     placeholder="Poznámka (volitelné)"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="flex-1 min-w-[150px] px-2 py-1.5 rounded border border-border bg-background text-sm"
+                    className="hub-input !min-h-9 flex-1 min-w-[150px] !w-auto"
                   />
                   <button
                     onClick={() => submit(cat, { count: Math.max(1, Number(count) || 1), note: note || undefined })}
                     disabled={pending === cat}
-                    className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-sm disabled:opacity-50"
+                    className="hub-btn hub-btn-sm hub-btn-primary"
                   >
                     Uložit
                   </button>
@@ -186,31 +186,31 @@ export default function GeckoCard({ gecko, todayEvents, lastPerCategory, lastShe
         })}
       </ul>
 
-      <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40 text-xs">
+      <div className="flex items-center justify-between gap-2 pt-2.5 mt-auto hub-divider text-xs">
         <div className="flex items-center gap-2 min-w-0">
-          <Sparkles className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <Sparkles className="w-3.5 h-3.5 text-mint/70 shrink-0" />
           <span className="text-muted-foreground">
             Svlékání:{' '}
             {lastShedding ? relativeFromNow(lastShedding.ts) : 'zatím nezaznamenáno'}
           </span>
           {sheddingNeedsCheck && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600">
+            <span className="hub-pill hub-pill-warn">
               <AlertTriangle className="w-3 h-3" /> kontrola
             </span>
           )}
         </div>
         <button
           onClick={logShedding}
-          className="px-2 py-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="hub-btn hub-btn-sm hub-btn-quiet"
         >
           + svlékání
         </button>
       </div>
 
       {lastCreated && (
-        <div className="absolute bottom-3 right-3 left-3 flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-foreground/90 text-background text-xs shadow-lg">
+        <div className="hub-toast absolute bottom-3 right-3 left-3 z-10">
           <span>Zapsáno: {CATEGORY_LABELS[lastCreated.category]} ×{lastCreated.count}</span>
-          <button onClick={undoLast} className="inline-flex items-center gap-1 underline">
+          <button onClick={undoLast} className="inline-flex items-center gap-1 text-aqua hover:underline">
             <Undo2 className="w-3 h-3" /> Vrátit
           </button>
         </div>

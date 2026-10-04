@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Bot, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Bot, ChevronLeft, ChevronRight, Droplet } from 'lucide-react';
 import type { CareCategory, CareEvent, Gecko, MistingEvent } from '../lib/types';
 import { api } from '../lib/api';
 import { CATEGORY_LABELS, PART_OF_DAY_LABELS, formatDuration, formatTime } from '../lib/format';
@@ -42,7 +42,9 @@ function pragueYmd(ts: string): string {
 
 // Rosič rosí každý den, takže kdyby se auto zápisy kreslily stejně jako ruční,
 // měla by každá buňka tři kapky a kalendář by o mlžení přestal říkat cokoli.
-// Auto kapky proto kreslím zašedle, ruční zůstávají modré a vyčnívají.
+// Auto kapky proto kreslím zašedle, ruční zůstávají akvamarínové a vyčnívají.
+// Kapka je ikona, ne emoji — emoji si barvu z CSS nebere, takže by obě
+// varianty vypadaly stejně.
 type MistMark = 'none' | 'auto' | 'manual';
 
 function strongerMark(current: MistMark, source: MistingEvent['source']): MistMark {
@@ -51,9 +53,13 @@ function strongerMark(current: MistMark, source: MistingEvent['source']): MistMa
 }
 
 const MIST_CLASS: Record<Exclude<MistMark, 'none'>, string> = {
-  manual: 'text-blue-500',
-  auto: 'text-muted-foreground/50',
+  manual: 'text-aqua',
+  auto: 'text-muted-foreground/45',
 };
+
+function Drop({ className = '' }: { className?: string }) {
+  return <Droplet className={'inline w-3 h-3 ' + className} fill="currentColor" strokeWidth={0} aria-hidden />;
+}
 
 interface CellData {
   rano: MistMark;
@@ -165,16 +171,16 @@ export default function CalendarBoard() {
   return (
     <div>
       <header className="flex items-center justify-center gap-3 mb-4">
-        <button onClick={() => navMonth(-1)} className="p-2 rounded hover:bg-muted" aria-label="Předchozí měsíc">
+        <button onClick={() => navMonth(-1)} className="hub-btn hub-btn-quiet hub-btn-icon" aria-label="Předchozí měsíc">
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <h2 className="text-2xl font-semibold tabular-nums">{month}/{year}</h2>
-        <button onClick={() => navMonth(1)} className="p-2 rounded hover:bg-muted" aria-label="Další měsíc">
+        <h2 className="hub-title hub-num text-2xl min-w-[7ch] text-center">{month}/{year}</h2>
+        <button onClick={() => navMonth(1)} className="hub-btn hub-btn-quiet hub-btn-icon" aria-label="Další měsíc">
           <ChevronRight className="w-4 h-4" />
         </button>
       </header>
 
-      <div className="grid grid-cols-7 gap-1 text-xs text-muted-foreground mb-1">
+      <div className="grid grid-cols-7 gap-1 hub-label mb-1">
         {DAY_NAMES.map((d) => (
           <div key={d} className="text-center py-1">{d}</div>
         ))}
@@ -192,17 +198,19 @@ export default function CalendarBoard() {
               key={cell}
               onClick={() => setSelectedDay((d) => (d === cell ? null : cell))}
               className={
-                'h-24 p-1 relative rounded-md border text-left flex flex-col text-xs overflow-hidden transition-colors ' +
+                'h-24 p-1 relative rounded-lg border text-left flex flex-col text-xs overflow-hidden transition-colors ' +
                 (selected
-                  ? 'border-primary bg-primary/10'
-                  : 'border-border hover:bg-muted')
+                  ? 'border-aqua/60 bg-aqua/10'
+                  : isToday
+                  ? 'border-primary/40 bg-primary/5 hover:bg-muted'
+                  : 'border-border bg-secondary/30 hover:bg-muted')
               }
             >
               {/* Den vpravo nahoře */}
               <span
                 className={
                   'absolute top-1 right-1.5 text-sm leading-none tabular-nums ' +
-                  (isToday ? 'font-bold text-primary' : '')
+                  (isToday ? 'font-bold text-primary' : 'text-muted-foreground')
                 }
               >
                 {day}
@@ -214,7 +222,7 @@ export default function CalendarBoard() {
                   className={`absolute top-0.5 left-1 leading-none ${MIST_CLASS[data.rano]}`}
                   title={data.rano === 'auto' ? 'Ráno — rosič' : 'Ráno mlženo'}
                 >
-                  💧
+                  <Drop />
                 </span>
               )}
 
@@ -224,7 +232,7 @@ export default function CalendarBoard() {
                   className={`absolute bottom-0.5 right-1 leading-none ${MIST_CLASS[data.vecer]}`}
                   title={data.vecer === 'auto' ? 'Večer — rosič' : 'Večer mlženo'}
                 >
-                  💧
+                  <Drop />
                 </span>
               )}
 
@@ -247,16 +255,16 @@ export default function CalendarBoard() {
 
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
-          <span className="text-blue-500">💧</span> ručně
+          <Drop className={MIST_CLASS.manual} /> ručně
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="text-muted-foreground/50">💧</span> rosič
+          <Drop className={MIST_CLASS.auto} /> rosič
         </span>
       </p>
 
       {selectedDay && (
-        <section className="mt-6 rounded-xl border border-border p-4">
-          <h3 className="text-lg font-semibold mb-3">{selectedDay}</h3>
+        <section className="mt-6 rounded-xl border border-aqua/25 bg-secondary/50 p-4">
+          <h3 className="hub-title hub-num text-lg mb-3">{selectedDay}</h3>
           <DayDetail
             careEvents={careByDay[selectedDay] ?? []}
             mistingEvents={mistingByDay[selectedDay] ?? []}
@@ -294,10 +302,10 @@ function BandRow({
       {drops.map(([kind, n]) => (
         <span
           key={kind}
-          className={MIST_CLASS[kind]}
+          className={'inline-flex items-center ' + MIST_CLASS[kind]}
           title={kind === 'auto' ? `Rosič (${n}×)` : `Náhodné mlžení (${n}×)`}
         >
-          💧{n > 1 ? `×${n}` : ''}
+          <Drop />{n > 1 ? `×${n}` : ''}
         </span>
       ))}
       {geckos.map((g) => {
@@ -361,7 +369,7 @@ function DayDetail({
             <span>
               {CATEGORY_EMOJI[ev.category]} {CATEGORY_LABELS[ev.category]}
             </span>
-            <span className="text-xs px-1.5 py-0.5 rounded bg-secondary tabular-nums">×{ev.count}</span>
+            <span className="hub-pill hub-pill-neutral tabular-nums">×{ev.count}</span>
             {ev.note && <span className="text-muted-foreground truncate">— {ev.note}</span>}
             <span className="text-muted-foreground ml-auto tabular-nums">{formatTime(ev.ts)}</span>
           </div>
@@ -375,17 +383,17 @@ function DayDetail({
             <span
               className={
                 'w-5 h-5 flex items-center justify-center ' +
-                (byMister ? 'text-muted-foreground/50' : 'text-blue-500')
+                (byMister ? MIST_CLASS.auto : MIST_CLASS.manual)
               }
             >
-              💧
+              <Drop className="!w-4 !h-4" />
             </span>
             <span className="font-medium">Mlžení</span>
             <span className="text-muted-foreground">·</span>
             <span>{PART_OF_DAY_LABELS[ev.part_of_day]}</span>
             {byMister && (
               <span
-                className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-secondary text-muted-foreground"
+                className="hub-pill hub-pill-neutral"
                 title="zapsal automatický rosič"
               >
                 <Bot className="w-3 h-3" />
