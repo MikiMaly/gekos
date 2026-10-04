@@ -266,6 +266,24 @@ async function checkSheddingFollowups(env: Env): Promise<void> {
   }
 }
 
+// ─────────────── auth pro POST endpointy ─────────────────────────────────
+
+// Oba POST endpointy stojí na veřejné workers.dev adrese a oba umí zapisovat
+// do D1 a posílat zprávy na Telegram, takže oba chce ověřit. Sdílí jeden
+// secret (TELEGRAM_WEBHOOK_SECRET), jen pod jiným názvem hlavičky — Telegram
+// umí poslat výhradně tu svoji, manuální trigger s Telegramem nesouvisí.
+//
+// Nenastavený secret znamená odmítnout všechno. Bez té pojistky by prázdná
+// hlavička proti prázdnému secretu prošla a endpoint by se tím otevřel.
+function secretOk(request: Request, env: Env, header: string): boolean {
+  const expected = env.TELEGRAM_WEBHOOK_SECRET;
+  if (!expected) {
+    console.error('TELEGRAM_WEBHOOK_SECRET není nastavený — odmítám request');
+    return false;
+  }
+  return request.headers.get(header) === expected;
+}
+
 // ─────────────── webhook (inline button callbacks) ────────────────────────
 
 interface TelegramCallbackQuery {
@@ -348,8 +366,7 @@ export default {
 
     // Telegram webhook pro inline button callbacks.
     if (url.pathname === '/telegram' && request.method === 'POST') {
-      const tokenHeader = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
-      if (tokenHeader !== env.TELEGRAM_WEBHOOK_SECRET) {
+      if (!secretOk(request, env, 'X-Telegram-Bot-Api-Secret-Token')) {
         return new Response('forbidden', { status: 403 });
       }
       const update = (await request.json()) as { callback_query?: TelegramCallbackQuery };
@@ -360,7 +377,13 @@ export default {
     }
 
     // Manuální trigger pro testování — POST / s ?hour=N&minute=M.
+    // Spouští runForTime(), tedy zápisy do misting_events, zprávy na Telegram
+    // a označování shedding_events.check_reminded. Bez ověření by to komukoli
+    // se znalostí adresy workeru stačilo na spam i zápis do produkční DB.
     if (request.method === 'POST' && (url.pathname === '/' || url.pathname === '')) {
+      if (!secretOk(request, env, 'X-Gekos-Cron-Secret')) {
+        return new Response('forbidden', { status: 403 });
+      }
       const real = pragueNow();
       const hourParam = url.searchParams.get('hour');
       const minuteParam = url.searchParams.get('minute');
