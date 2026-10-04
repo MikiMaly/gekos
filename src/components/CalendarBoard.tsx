@@ -4,7 +4,6 @@ import type { CareCategory, CareEvent, Gecko, MistingEvent } from '../lib/types'
 import { api } from '../lib/api';
 import { CATEGORY_LABELS, PART_OF_DAY_LABELS, formatDuration, formatTime } from '../lib/format';
 import { pragueLogicalDateString, pragueMonthRange } from '../lib/time';
-import DayNotesPanel from './DayNotesPanel';
 
 const DAY_NAMES = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 
@@ -191,7 +190,7 @@ export default function CalendarBoard() {
           return (
             <button
               key={cell}
-              onClick={() => setSelectedDay(cell)}
+              onClick={() => setSelectedDay((d) => (d === cell ? null : cell))}
               className={
                 'h-24 p-1 relative rounded-md border text-left flex flex-col text-xs overflow-hidden transition-colors ' +
                 (selected
@@ -256,19 +255,14 @@ export default function CalendarBoard() {
       </p>
 
       {selectedDay && (
-        <>
-          <section className="mt-6 rounded-xl border border-border p-4">
-            <h3 className="text-lg font-semibold mb-3">{selectedDay}</h3>
-            <DayDetail
-              careEvents={careByDay[selectedDay] ?? []}
-              mistingEvents={mistingByDay[selectedDay] ?? []}
-              geckoById={geckoById}
-            />
-          </section>
-          <div className="mt-4">
-            <DayNotesPanel date={selectedDay} geckos={geckos} compact />
-          </div>
-        </>
+        <section className="mt-6 rounded-xl border border-border p-4">
+          <h3 className="text-lg font-semibold mb-3">{selectedDay}</h3>
+          <DayDetail
+            careEvents={careByDay[selectedDay] ?? []}
+            mistingEvents={mistingByDay[selectedDay] ?? []}
+            geckoById={geckoById}
+          />
+        </section>
       )}
     </div>
   );
