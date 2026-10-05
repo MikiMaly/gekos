@@ -91,16 +91,16 @@ export default function MistingWidget({ today, onChange }: Props) {
     return (
       <div
         key={part}
-        className="flex items-center justify-between gap-3 py-2.5 border-b border-border/40 last:border-0"
+        className="flex items-center justify-between gap-3 py-2.5 border-b border-border last:border-0"
       >
         <div className="flex items-center gap-3 min-w-0">
           <Icon
             className={
               'w-4 h-4 ' +
               (state === 'done'
-                ? 'text-blue-500'
+                ? 'text-aqua'
                 : state === 'skipped'
-                ? 'text-red-500'
+                ? 'text-raspberry'
                 : 'text-muted-foreground')
             }
           />
@@ -117,7 +117,7 @@ export default function MistingWidget({ today, onChange }: Props) {
           <button
             onClick={() => submit(part)}
             disabled={pending === part}
-            className="w-9 h-9 rounded-md flex items-center justify-center disabled:opacity-50 bg-primary/10 text-primary hover:bg-primary/20"
+            className="hub-btn hub-btn-aqua hub-btn-icon !min-h-9 !w-9"
             aria-label={`Zaznamenat mlžení ${PART_OF_DAY_LABELS[part]}`}
           >
             <Plus className="w-4 h-4" />
@@ -127,9 +127,9 @@ export default function MistingWidget({ today, onChange }: Props) {
             className={
               'w-9 h-9 rounded-md flex items-center justify-center shrink-0 ' +
               (state === 'done'
-                ? 'text-blue-600'
+                ? 'text-aqua'
                 : state === 'skipped'
-                ? 'text-red-600'
+                ? 'text-raspberry'
                 : 'text-muted-foreground/40')
             }
             aria-hidden
@@ -148,17 +148,17 @@ export default function MistingWidget({ today, onChange }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 relative">
+    <div className="hub-card hub-edge-info p-5">
       <header className="mb-3">
         <Link
           to="/private/geckos/misting"
           className="flex items-center gap-2 group"
         >
-          <Cloud className="w-5 h-5 text-blue-500 shrink-0" />
-          <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+          <Cloud className="w-5 h-5 text-aqua shrink-0" />
+          <h3 className="hub-title text-xl group-hover:text-mint transition-colors">
             Mlžení terária
           </h3>
-          <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+          <ArrowRight className="w-4 h-4 text-aqua shrink-0 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
         </Link>
       </header>
 
@@ -174,9 +174,9 @@ export default function MistingWidget({ today, onChange }: Props) {
       </div>
 
       {lastCreated && (
-        <div className="absolute bottom-3 right-3 left-3 flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-foreground/90 text-background text-xs shadow-lg">
+        <div className="hub-toast absolute bottom-3 right-3 left-3 z-10">
           <span>Zapsáno: mlžení {PART_OF_DAY_LABELS[lastCreated.part_of_day]}</span>
-          <button onClick={undoLast} className="inline-flex items-center gap-1 underline">
+          <button onClick={undoLast} className="inline-flex items-center gap-1 text-aqua hover:underline">
             <Undo2 className="w-3 h-3" /> Vrátit
           </button>
         </div>

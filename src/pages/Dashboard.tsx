@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router';
-import { ArrowLeft, StickyNote } from 'lucide-react';
+import { StickyNote } from 'lucide-react';
 import { api, type DashboardResponse } from '../lib/api';
 import GeckoCard from '../components/GeckoCard';
 import MistingWidget from '../components/MistingWidget';
 import DayNotesPanel from '../components/DayNotesPanel';
 import CalendarBoard from '../components/CalendarBoard';
+import GeckoShell from '../components/GeckoShell';
 
 export default function GeckosDashboard() {
   const [data, setData] = useState<DashboardResponse | null>(null);
@@ -25,92 +25,85 @@ export default function GeckosDashboard() {
   }, []);
 
   useEffect(() => {
-    document.title = 'Gekoni — mmaly.cz';
+    document.title = 'Gekoni · mmaly.cz';
     load();
   }, [load]);
 
   if (error) {
     return (
-      <div className="max-w-[1600px] mx-auto p-6">
-        <p className="text-destructive">Chyba: {error}</p>
-      </div>
+      <GeckoShell icon="🦎" title="Gekoni">
+        <p className="px-4 py-3 rounded-xl bg-raspberry/10 border border-raspberry/25 text-raspberry text-sm">
+          Chyba: {error}
+        </p>
+      </GeckoShell>
     );
   }
 
   if (!data) {
     return (
-      <div className="max-w-[1600px] mx-auto p-6">
+      <GeckoShell icon="🦎" title="Gekoni">
         <p className="text-muted-foreground">Načítám…</p>
-      </div>
+      </GeckoShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-[1600px] mx-auto p-6">
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/private"
-              className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="w-4 h-4" /> Zpět
-            </Link>
-            <h1 className="text-3xl font-semibold">🦎 Gekoni</h1>
-            <span className="text-sm text-muted-foreground">{data.date_prague}</span>
-          </div>
+    <GeckoShell
+      icon="🦎"
+      title="Gekoni"
+      subtitle="Krmení, mlžení, svlékání a historie péče"
+      aside={
+        <>
+          <span className="hub-chip px-3 py-1.5 tabular-nums">dnes {data.date_prague}</span>
           <button
             onClick={() => setNotesOpen((o) => !o)}
-            className={
-              'p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted ' +
-              (notesOpen ? 'bg-muted text-foreground' : '')
-            }
+            className={'hub-btn hub-btn-sm ' + (notesOpen ? 'hub-btn-soft' : 'hub-btn-ghost')}
             aria-expanded={notesOpen}
-            aria-label="Poznámka k dnešku"
             title="Poznámka k dnešku"
           >
             <StickyNote className="w-4 h-4" />
+            Poznámka
           </button>
-        </header>
-
-        {notesOpen && (
-          <div className="-mt-4 mb-6">
-            <DayNotesPanel
-              date={data.date_prague}
-              geckos={data.geckos.map((g) => g.gecko)}
-              compact
-              defaultOpen
-            />
-          </div>
-        )}
-
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mb-6">
-          {data.geckos.map((g) => (
-            <GeckoCard
-              key={g.gecko.id}
-              gecko={g.gecko}
-              todayEvents={g.today_events}
-              lastPerCategory={g.last_event_per_category}
-              lastShedding={g.last_shedding}
-              onChange={load}
-            />
-          ))}
-        </section>
-
-        {/* Na širokém monitoru vedle sebe: kalendář bere čtyři pětiny, mlžení
-            zbytek. Pod sebou to bylo přes dvě obrazovky scrollu, i když obojí
-            se vedle sebe v klidu vejde. Pod xl se to složí zpátky.
-
-            Kalendářový sloupec má strop na výšku okna a scrolluje sám v sobě.
-            Bez toho rozklik dne (detail + poznámky) natáhl celou stránku a
-            muselo se scrollovat znovu od začátku. */}
-        <div className="grid gap-6 xl:grid-cols-5 items-start">
-          <section className="xl:col-span-4 xl:max-h-[calc(100vh-13rem)] xl:overflow-y-auto xl:pr-2">
-            <CalendarBoard />
-          </section>
-          <MistingWidget today={data.misting_today} onChange={load} />
+        </>
+      }
+    >
+      {notesOpen && (
+        <div className="mb-6">
+          <DayNotesPanel
+            date={data.date_prague}
+            geckos={data.geckos.map((g) => g.gecko)}
+            compact
+            defaultOpen
+          />
         </div>
+      )}
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mb-6">
+        {data.geckos.map((g) => (
+          <GeckoCard
+            key={g.gecko.id}
+            gecko={g.gecko}
+            todayEvents={g.today_events}
+            lastPerCategory={g.last_event_per_category}
+            lastShedding={g.last_shedding}
+            onChange={load}
+          />
+        ))}
+      </section>
+
+      {/* Na širokém monitoru vedle sebe: kalendář bere čtyři pětiny, mlžení
+          zbytek. Pod sebou to bylo přes dvě obrazovky scrollu, i když obojí
+          se vedle sebe v klidu vejde. Pod xl se to složí zpátky.
+
+          Kalendářový sloupec má strop na výšku okna a scrolluje sám v sobě.
+          Bez toho rozklik dne (detail + poznámky) natáhl celou stránku a
+          muselo se scrollovat znovu od začátku. */}
+      <div className="grid gap-6 xl:grid-cols-5 items-start">
+        <section className="hub-card p-4 sm:p-5 xl:col-span-4 xl:max-h-[calc(100vh-9rem)] xl:overflow-y-auto">
+          <CalendarBoard />
+        </section>
+        <MistingWidget today={data.misting_today} onChange={load} />
       </div>
-    </div>
+    </GeckoShell>
   );
 }

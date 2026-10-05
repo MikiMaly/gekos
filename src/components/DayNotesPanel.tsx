@@ -59,7 +59,7 @@ export default function DayNotesPanel({ date, geckos, compact, defaultOpen }: Pr
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card px-4 py-3">
+    <div className="hub-card px-4 py-3">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 w-full text-left"
@@ -70,12 +70,12 @@ export default function DayNotesPanel({ date, geckos, compact, defaultOpen }: Pr
         ) : (
           <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
         )}
-        <StickyNote className="w-4 h-4 text-amber-500 shrink-0" />
+        <StickyNote className="w-4 h-4 text-apricot shrink-0" />
         <span className={compact ? 'text-sm font-medium' : 'font-semibold'}>
           Poznámka {compact ? '' : 'k dnešku'}
         </span>
         {notes.length > 0 && (
-          <span className="text-xs px-1.5 py-0.5 rounded bg-secondary tabular-nums">
+          <span className="hub-pill hub-pill-neutral tabular-nums">
             {notes.length}
           </span>
         )}
@@ -89,7 +89,7 @@ export default function DayNotesPanel({ date, geckos, compact, defaultOpen }: Pr
             return (
               <li
                 key={n.id}
-                className="flex items-start gap-2 py-1.5 px-2 rounded border border-border/60 text-sm"
+                className="flex items-start gap-2 py-2 px-3 rounded-xl border border-border bg-secondary/50 text-sm"
               >
                 {g && (
                   <span
@@ -134,12 +134,12 @@ export default function DayNotesPanel({ date, geckos, compact, defaultOpen }: Pr
             }
           }}
           placeholder="Co se dnes dělo…"
-          className="flex-1 min-w-[180px] px-3 py-2 rounded border border-border bg-background text-sm"
+          className="hub-input flex-1 min-w-[180px] !w-auto"
         />
         <select
           value={geckoId}
           onChange={(e) => setGeckoId(e.target.value)}
-          className="px-2 py-2 rounded border border-border bg-background text-sm"
+          className="hub-input !w-auto"
           aria-label="Týká se"
         >
           <option value="">— obecná</option>
@@ -150,7 +150,7 @@ export default function DayNotesPanel({ date, geckos, compact, defaultOpen }: Pr
         <button
           onClick={submit}
           disabled={busy || !text.trim()}
-          className="px-3 py-2 rounded bg-primary text-primary-foreground text-sm disabled:opacity-50 inline-flex items-center gap-1"
+          className="hub-btn hub-btn-primary"
         >
           <Plus className="w-4 h-4" /> Přidat
         </button>
