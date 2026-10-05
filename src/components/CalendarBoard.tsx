@@ -169,8 +169,8 @@ export default function CalendarBoard() {
   };
 
   return (
-    <div>
-      <header className="flex items-center justify-center gap-3 mb-4">
+    <div className="xl:flex-1 xl:min-h-0 xl:flex xl:flex-col">
+      <header className="flex items-center justify-center gap-3 mb-1">
         <button onClick={() => navMonth(-1)} className="hub-btn hub-btn-quiet hub-btn-icon" aria-label="Předchozí měsíc">
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -180,12 +180,15 @@ export default function CalendarBoard() {
         </button>
       </header>
 
-      <div className="grid grid-cols-7 gap-1 hub-label mb-1">
+      <div className="grid grid-cols-7 gap-1 hub-label mb-0.5">
         {DAY_NAMES.map((d) => (
           <div key={d} className="text-center py-1">{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      {/* Na xl mřížka zabere zbytek výšky okna (dashboard je flex sloupec na
+          výšku obrazovky) a řádky se rozdělí rovným dílem — vejde se to na
+          Full HD bez scrollování, ať jsou karty gekonů nad ním jakkoli vysoké. */}
+      <div className="grid grid-cols-7 gap-1 xl:flex-1 xl:min-h-[16rem] xl:auto-rows-fr">
         {grid.map((cell, i) => {
           if (!cell) return <div key={`e-${i}`} />;
           const day = Number(cell.slice(-2));
@@ -198,7 +201,7 @@ export default function CalendarBoard() {
               key={cell}
               onClick={() => setSelectedDay((d) => (d === cell ? null : cell))}
               className={
-                'h-24 p-1 relative rounded-lg border text-left flex flex-col text-xs overflow-hidden transition-colors ' +
+                'h-24 xl:h-auto xl:min-h-[3rem] p-1 relative rounded-lg border text-left flex flex-col text-xs overflow-hidden transition-colors ' +
                 (selected
                   ? 'border-aqua/60 bg-aqua/10'
                   : isToday
@@ -253,7 +256,7 @@ export default function CalendarBoard() {
         })}
       </div>
 
-      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-muted-foreground">
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <Drop className={MIST_CLASS.manual} /> ručně
         </span>

@@ -49,7 +49,9 @@ export default function GeckosDashboard() {
 
   return (
     <GeckoShell
+      fill
       icon="🦎"
+      eyebrow=""
       title="Gekoni"
       subtitle="Krmení, mlžení, svlékání a historie péče"
       aside={
@@ -78,7 +80,7 @@ export default function GeckosDashboard() {
         </div>
       )}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mb-6">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mb-4 shrink-0">
         {data.geckos.map((g) => (
           <GeckoCard
             key={g.gecko.id}
@@ -98,11 +100,13 @@ export default function GeckosDashboard() {
           Kalendářový sloupec má strop na výšku okna a scrolluje sám v sobě.
           Bez toho rozklik dne (detail + poznámky) natáhl celou stránku a
           muselo se scrollovat znovu od začátku. */}
-      <div className="grid gap-6 xl:grid-cols-5 items-start">
-        <section className="hub-card p-4 sm:p-5 xl:col-span-4 xl:max-h-[calc(100vh-9rem)] xl:overflow-y-auto">
+      <div className="grid gap-4 xl:grid-cols-5 items-start xl:items-stretch xl:flex-1 xl:min-h-0">
+        <section className="hub-card px-4 py-3 xl:col-span-4 xl:min-h-0 xl:overflow-y-auto xl:flex xl:flex-col">
           <CalendarBoard />
         </section>
-        <MistingWidget today={data.misting_today} onChange={load} />
+        <div className="xl:self-start">
+          <MistingWidget today={data.misting_today} onChange={load} />
+        </div>
       </div>
     </GeckoShell>
   );
