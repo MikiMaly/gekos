@@ -113,12 +113,17 @@ export function pragueLogicalTodayRange(): { start: string; end: string } {
   return pragueLogicalDayRange(pragueLogicalDateString());
 }
 
+// Rozsah měsíce v logických dnech: od 04:00 prvního do 04:00 prvního dne
+// dalšího měsíce. Kalendář řadí zápisy do buněk podle logického dne, takže
+// rozsah musí sedět s ním. S půlnoční hranicí se krmení 1. v 00:24 neobjevilo
+// nikde: říjen ho nestáhl (je za jeho koncem) a listopad ho stáhl, ale dal ho
+// do buňky 31. 10., která v listopadové mřížce není.
 export function pragueMonthRange(year: number, monthOneBased: number): { start: string; end: string } {
   const startYmd = `${year}-${String(monthOneBased).padStart(2, '0')}-01`;
-  const start = pragueMidnightUtc(startYmd);
+  const start = pragueWallTimeToUtc(startYmd, LOGICAL_DAY_CUTOFF_HOUR);
   const nextMonth = monthOneBased === 12 ? 1 : monthOneBased + 1;
   const nextYear = monthOneBased === 12 ? year + 1 : year;
   const endYmd = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
-  const end = pragueMidnightUtc(endYmd);
+  const end = pragueWallTimeToUtc(endYmd, LOGICAL_DAY_CUTOFF_HOUR);
   return { start: start.toISOString(), end: end.toISOString() };
 }

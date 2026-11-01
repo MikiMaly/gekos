@@ -102,7 +102,7 @@ export default function GeckosDashboard() {
           muselo se scrollovat znovu od začátku. */}
       <div className="grid gap-4 xl:grid-cols-5 items-start xl:items-stretch xl:flex-1 xl:min-h-0">
         <section className="hub-card px-4 py-3 xl:col-span-4 xl:min-h-0 xl:overflow-y-auto xl:flex xl:flex-col">
-          <CalendarBoard />
+          <CalendarBoard reloadKey={data} />
         </section>
         <div className="xl:self-start">
           <MistingWidget today={data.misting_today} onChange={load} />

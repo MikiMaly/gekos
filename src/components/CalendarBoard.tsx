@@ -82,10 +82,15 @@ function emptyCell(): CellData {
   };
 }
 
-export default function CalendarBoard() {
-  const today = new Date();
-  const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth() + 1);
+// reloadKey: dashboard sem posílá svoje data, aby se kalendář přenačetl
+// po každém kliku na kartě gekona nebo v mlžení — jinak zápis ukázal jen
+// karta a kalendář až po obnovení stránky.
+export default function CalendarBoard({ reloadKey }: { reloadKey?: unknown } = {}) {
+  // Výchozí měsíc podle logického dne — 1. v 01:00 je pořád poslední den
+  // minulého měsíce a ten má být vidět.
+  const [todayY, todayM] = pragueLogicalDateString().split('-').map(Number);
+  const [year, setYear] = useState(todayY);
+  const [month, setMonth] = useState(todayM);
 
   const [geckos, setGeckos] = useState<Gecko[]>([]);
   const [careEvents, setCareEvents] = useState<CareEvent[]>([]);
@@ -107,7 +112,7 @@ export default function CalendarBoard() {
       )
     );
     setCareEvents(careLists.flatMap((r) => r.events));
-  }, [year, month]);
+  }, [year, month, reloadKey]);
 
   useEffect(() => {
     load();
