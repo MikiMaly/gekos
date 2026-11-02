@@ -3,7 +3,7 @@ import { Bot, ChevronLeft, ChevronRight, Droplet } from 'lucide-react';
 import type { CareCategory, CareEvent, Gecko, MistingEvent } from '../lib/types';
 import { api } from '../lib/api';
 import { CATEGORY_LABELS, PART_OF_DAY_LABELS, formatDuration, formatTime } from '../lib/format';
-import { pragueLogicalDateString, pragueMonthRange } from '../lib/time';
+import { pragueLogicalDateString, pragueLogicalDayRange } from '../lib/time';
 
 const DAY_NAMES = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 
@@ -97,8 +97,13 @@ export default function CalendarBoard({ reloadKey }: { reloadKey?: unknown } = {
   const [mistingEvents, setMistingEvents] = useState<MistingEvent[]>([]);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
+  const grid = useMemo(() => buildMonthGrid(year, month), [year, month]);
+
   const load = useCallback(async () => {
-    const { start, end } = pragueMonthRange(year, month);
+    // Stahuju celou mřížku včetně dnů sousedních měsíců, ne jen měsíc.
+    // Hranice jsou logické dny (od 04:00), stejně jako řazení do buněk.
+    const start = pragueLogicalDayRange(grid[0]).start;
+    const end = pragueLogicalDayRange(grid[grid.length - 1]).end;
     const [gList, mList] = await Promise.all([
       api.geckos.list(),
       api.misting.list({ from: start, to: end }),
@@ -112,13 +117,11 @@ export default function CalendarBoard({ reloadKey }: { reloadKey?: unknown } = {
       )
     );
     setCareEvents(careLists.flatMap((r) => r.events));
-  }, [year, month, reloadKey]);
+  }, [grid, reloadKey]);
 
   useEffect(() => {
     load();
   }, [load]);
-
-  const grid = useMemo(() => buildMonthGrid(year, month), [year, month]);
 
   const careByDay = useMemo(() => {
     const map: Record<string, CareEvent[]> = {};
@@ -194,9 +197,11 @@ export default function CalendarBoard({ reloadKey }: { reloadKey?: unknown } = {
           výšku obrazovky) a řádky se rozdělí rovným dílem — vejde se to na
           Full HD bez scrollování, ať jsou karty gekonů nad ním jakkoli vysoké. */}
       <div className="grid grid-cols-7 gap-1 xl:flex-1 xl:min-h-[16rem] xl:auto-rows-fr">
-        {grid.map((cell, i) => {
-          if (!cell) return <div key={`e-${i}`} />;
+        {grid.map((cell) => {
           const day = Number(cell.slice(-2));
+          // Dny předchozího/dalšího měsíce na okrajích mřížky — se vším
+          // všudy, jen ztlumené, ať je hned vidět, kde měsíc začíná a končí.
+          const outside = Number(cell.slice(5, 7)) !== month;
           const isToday = cell === pragueLogicalDateString();
           const selected = cell === selectedDay;
           const data = cellsData[cell] ?? emptyCell();
@@ -211,7 +216,8 @@ export default function CalendarBoard({ reloadKey }: { reloadKey?: unknown } = {
                   ? 'border-aqua/60 bg-aqua/10'
                   : isToday
                   ? 'border-primary/40 bg-primary/5 hover:bg-muted'
-                  : 'border-border bg-secondary/30 hover:bg-muted')
+                  : 'border-border bg-secondary/30 hover:bg-muted') +
+                (outside && !selected ? ' opacity-45 hover:opacity-80' : '')
               }
             >
               {/* Den vpravo nahoře */}
@@ -336,16 +342,20 @@ function BandRow({
   );
 }
 
-function buildMonthGrid(year: number, month: number): (string | null)[] {
+// Celé týdny od pondělí do neděle: měsíc plus dny sousedních měsíců,
+// které se do jeho prvního a posledního týdne vejdou.
+function buildMonthGrid(year: number, month: number): string[] {
   const first = new Date(Date.UTC(year, month - 1, 1));
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const dow = (first.getUTCDay() + 6) % 7;
-  const cells: (string | null)[] = [];
-  for (let i = 0; i < dow; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push(`${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+  const lead = (first.getUTCDay() + 6) % 7;
+  const total = Math.ceil((lead + daysInMonth) / 7) * 7;
+  const cells: string[] = [];
+  for (let i = 0; i < total; i++) {
+    const d = new Date(Date.UTC(year, month - 1, 1 - lead + i));
+    cells.push(
+      `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+    );
   }
-  while (cells.length % 7 !== 0) cells.push(null);
   return cells;
 }
 
